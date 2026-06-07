@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+{% block title %}My Overview{% endblock %}
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{--purple:#7c3aed;--purple-light:#ede9fe;--blue:#2563eb;--cyan:#0891b2;--green:#16a34a;--amber:#d97706;--rose:#e11d48;}
+*{box-sizing:border-box;}
+body{background:#f0f2f5;font-family:'Inter',sans-serif;margin:0;}
+
+/* ── Sidebar ── */
+.sidebar{width:240px;min-height:100vh;background:linear-gradient(180deg,#1e1b4b,#312e81);position:fixed;top:0;left:0;z-index:100;display:flex;flex-direction:column;}
+.sidebar .brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+.sidebar .brand-icon{width:34px;height:34px;border-radius:8px;background:var(--purple);display:flex;align-items:center;justify-content:center;}
+.sidebar .nav-link{color:rgba(255,255,255,.65);padding:10px 18px;border-radius:8px;margin:2px 10px;font-size:.88rem;display:flex;align-items:center;gap:10px;transition:all .18s;text-decoration:none;}
+.sidebar .nav-link i{font-size:1rem;width:18px;text-align:center;}
+.sidebar .nav-link:hover,.sidebar .nav-link.active{background:rgba(124,58,237,.3);color:#c4b5fd;}
+.sidebar-bottom{padding:14px;margin-top:auto;}
+.main{margin-left:240px;padding:28px;}
+
+/* ── Topbar ── */
+.topbar{background:white;border-radius:14px;padding:16px 24px;margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;}
+.topbar .greeting{font-size:1.25rem;font-weight:700;color:#1e1b4b;}
+.topbar .sub{font-size:.85rem;color:#6b7280;margin-top:2px;}
+
+/* ── Performance Banner ── */
+.perf-banner{border-radius:16px;padding:24px 28px;margin-bottom:24px;color:white;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;}
+.perf-banner.high{background:linear-gradient(135deg,#059669,#10b981);}
+.perf-banner.medium{background:linear-gradient(135deg,#d97706,#f59e0b);}
+.perf-banner.low{background:linear-gradient(135deg,#dc2626,#ef4444);}
+.perf-banner::after{content:'';position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.1);}
+.perf-banner::before{content:'';position:absolute;right:60px;bottom:-40px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.07);}
+.perf-label{font-size:.85rem;opacity:.85;margin-bottom:4px;}
+.perf-value{font-size:2rem;font-weight:800;line-height:1;}
+.perf-badge{background:rgba(255,255,255,.2);backdrop-filter:blur(4px);border-radius:30px;padding:8px 20px;font-weight:700;font-size:.95rem;z-index:1;}
+
+/* ── Stat Cards ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:white;border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.06);position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:14px 14px 0 0;}
+.stat-card.blue::before{background:var(--blue);}
+.stat-card.purple::before{background:var(--purple);}
+.stat-card.green::before{background:var(--green);}
+.stat-card.cyan::before{background:var(--cyan);}
+.stat-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px;}
+.stat-icon.blue{background:#dbeafe;color:var(--blue);}
+.stat-icon.purple{background:var(--purple-light);color:var(--purple);}
+.stat-icon.green{background:#dcfce7;color:var(--green);}
+.stat-icon.cyan{background:#cffafe;color:var(--cyan);}
+.stat-label{font-size:.78rem;color:#6b7280;font-weight:500;text-transform:uppercase;letter-spacing:.05em;}
+.stat-value{font-size:1.6rem;font-weight:800;color:#111827;line-height:1.1;margin:4px 0;}
+.stat-sub{font-size:.78rem;color:#9ca3af;}
+.progress-thin{height:6px;border-radius:4px;background:#f3f4f6;margin-top:10px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:4px;transition:width .6s ease;}
+
+/* ── Radar / Chart section ── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+.chart-card{background:white;border-radius:14px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.chart-card h6{font-weight:700;color:#1e1b4b;margin-bottom:18px;font-size:.95rem;}
+
+/* ── Metrics breakdown ── */
+.metric-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f3f4f6;}
+.metric-row:last-child{border-bottom:none;}
+.metric-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.metric-name{font-size:.88rem;color:#374151;font-weight:500;flex:1;}
+.metric-bar-wrap{flex:2;height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden;}
+.metric-bar-fill{height:100%;border-radius:4px;}
+.metric-val{font-size:.85rem;font-weight:700;color:#111827;min-width:44px;text-align:right;}
+
+/* ── Ranking card ── */
+.rank-card{background:white;border-radius:14px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:24px;}
+.rank-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;transition:background .15s;}
+.rank-row:hover{background:#f9fafb;}
+.rank-row.me{background:var(--purple-light);border:1px solid #c4b5fd;}
+.rank-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;}
+.rank-num.gold{background:#fef3c7;color:#92400e;}
+.rank-num.silver{background:#f3f4f6;color:#374151;}
+.rank-num.bronze{background:#fde8d8;color:#7c2d12;}
+.rank-num.other{background:#f0f2f5;color:#6b7280;}
+.rank-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--purple),#818cf8);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:.85rem;flex-shrink:0;}
+.rank-name{font-size:.88rem;font-weight:600;color:#111827;flex:1;}
+.rank-dept{font-size:.75rem;color:#9ca3af;}
+.rank-score{font-size:.9rem;font-weight:700;color:var(--purple);}
+
+/* ── Tips ── */
+.tips-card{background:white;border-radius:14px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.tip-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f3f4f6;}
+.tip-item:last-child{border-bottom:none;}
+.tip-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.tip-text{font-size:.85rem;color:#374151;line-height:1.5;}
+.tip-title{font-weight:600;color:#111827;font-size:.88rem;margin-bottom:2px;}
+</style>
+{% endblock %}
+
+{% block body %}
+{% set i = current_intern %}
+{% if i %}
+  {% set overall = ((i.attendance + i.project + i.communication * 10) / 3) | round | int %}
+  {% set perf = i.performance | default('Medium') %}
+{% endif %}
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="brand">
+    <div class="brand-icon"><i class="bi bi-mortarboard-fill text-white"></i></div>
+    <div class="text-white fw-bold" style="font-size:.95rem">Intern Portal</div>
+  </div>
+  <ul class="nav flex-column mt-2">
+    <li><a class="nav-link" href="/intern_dashboard"><i class="bi bi-house-fill"></i>Dashboard</a></li>
+    <li><a class="nav-link active" href="/intern_overview"><i class="bi bi-grid-1x2-fill"></i>Overview</a></li>
+    <li><a class="nav-link" href="/intern_report"><i class="bi bi-lightbulb-fill"></i>AI Suggestions &amp; Reports</a></li>
+    <li><a class="nav-link" href="/intern_profile"><i class="bi bi-person-circle"></i>Profile</a></li>
+    <li><a class="nav-link" href="/change_intern_password"><i class="bi bi-key-fill"></i>Change Password</a></li>
+  </ul>
+  <div class="sidebar-bottom">
+    <a class="nav-link" href="/logout" style="margin:0;color:rgba(255,255,255,.5)"><i class="bi bi-box-arrow-right"></i>Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="greeting">👋 Hello, {{ intern_name or 'Intern' }}!</div>
+      <div class="sub">Here's your complete performance overview</div>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <div class="text-end">
+        <div style="font-size:.78rem;color:#6b7280;">Department</div>
+        <div style="font-weight:600;color:#1e1b4b;font-size:.92rem;">{{ i.department if i else '—' }}</div>
+      </div>
+      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--purple),#818cf8);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;">
+        {{ (intern_name or 'I')[0].upper() }}
+      </div>
+    </div>
+  </div>
+
+  {% if i %}
+
+  <!-- Performance Banner -->
+  <div class="perf-banner {{ perf | lower }}">
+    <div>
+      <div class="perf-label">Overall Performance Rating</div>
+      <div class="perf-value">{{ perf }} Performer</div>
+      <div style="font-size:.85rem;opacity:.8;margin-top:6px;">Keep pushing — every point counts!</div>
+    </div>
+    <div class="perf-badge">
+      <i class="bi bi-trophy-fill me-1"></i> {{ overall }}% Overall
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stats-grid">
+    <div class="stat-card blue">
+      <div class="stat-icon blue"><i class="bi bi-calendar-check-fill"></i></div>
+      <div class="stat-label">Attendance</div>
+      <div class="stat-value">{{ i.attendance }}%</div>
+      <div class="stat-sub">of required days attended</div>
+      <div class="progress-thin"><div class="progress-fill" style="width:{{ i.attendance }}%;background:var(--blue);"></div></div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon green"><i class="bi bi-check2-square"></i></div>
+      <div class="stat-label">Tasks Completed</div>
+      <div class="stat-value">{{ i.tasks | int }}<span style="font-size:1rem;font-weight:500;color:#6b7280;">/20</span></div>
+      <div class="stat-sub">{{ (i.tasks / 20 * 100) | round | int }}% completion rate</div>
+      <div class="progress-thin"><div class="progress-fill" style="width:{{ (i.tasks / 20 * 100) | round | int }}%;background:var(--green);"></div></div>
+    </div>
+    <div class="stat-card cyan">
+      <div class="stat-icon cyan"><i class="bi bi-chat-dots-fill"></i></div>
+      <div class="stat-label">Communication Score</div>
+      <div class="stat-value">{{ i.communication }}<span style="font-size:1rem;font-weight:500;color:#6b7280;">/10</span></div>
+      <div class="stat-sub">{{ (i.communication * 10) | round | int }}% equivalent score</div>
+      <div class="progress-thin"><div class="progress-fill" style="width:{{ (i.communication * 10) | round | int }}%;background:var(--cyan);"></div></div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon purple"><i class="bi bi-folder2-open"></i></div>
+      <div class="stat-label">Project Score</div>
+      <div class="stat-value">{{ i.project | round | int }}<span style="font-size:1rem;font-weight:500;color:#6b7280;">/100</span></div>
+      <div class="stat-sub">project delivery quality</div>
+      <div class="progress-thin"><div class="progress-fill" style="width:{{ i.project | round | int }}%;background:var(--purple);"></div></div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="charts-grid">
+    <!-- Bar Chart -->
+    <div class="chart-card">
+      <h6><i class="bi bi-bar-chart-fill me-2" style="color:var(--purple);"></i>Score Breakdown</h6>
+      <canvas id="barChart" height="200"></canvas>
+    </div>
+    <!-- Radar Chart -->
+    <div class="chart-card">
+      <h6><i class="bi bi-diagram-3-fill me-2" style="color:var(--cyan);"></i>Performance Radar</h6>
+      <canvas id="radarChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Metrics Detail + Ranking -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-5">
+      <div class="chart-card h-100">
+        <h6><i class="bi bi-sliders me-2" style="color:var(--green);"></i>Detailed Metrics</h6>
+        <div class="metric-row">
+          <div class="metric-dot" style="background:var(--blue);"></div>
+          <div class="metric-name">Attendance</div>
+          <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:{{ i.attendance }}%;background:var(--blue);"></div></div>
+          <div class="metric-val">{{ i.attendance }}%</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-dot" style="background:var(--green);"></div>
+          <div class="metric-name">Task Completion</div>
+          <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:{{ (i.tasks/20*100)|round|int }}%;background:var(--green);"></div></div>
+          <div class="metric-val">{{ (i.tasks/20*100)|round|int }}%</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-dot" style="background:var(--cyan);"></div>
+          <div class="metric-name">Communication</div>
+          <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:{{ (i.communication*10)|round|int }}%;background:var(--cyan);"></div></div>
+          <div class="metric-val">{{ (i.communication*10)|round|int }}%</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-dot" style="background:var(--purple);"></div>
+          <div class="metric-name">Project Score</div>
+          <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:{{ i.project|round|int }}%;background:var(--purple);"></div></div>
+          <div class="metric-val">{{ i.project|round|int }}%</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-dot" style="background:var(--amber);"></div>
+          <div class="metric-name">Overall Score</div>
+          <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:{{ overall }}%;background:var(--amber);"></div></div>
+          <div class="metric-val">{{ overall }}%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Department Ranking -->
+    <div class="col-md-7">
+      <div class="rank-card h-100">
+        <h6 class="fw-bold mb-3" style="color:#1e1b4b;"><i class="bi bi-trophy-fill me-2" style="color:#f59e0b;"></i>Department Ranking</h6>
+        {% set dept_interns = interns | selectattr('department','equalto', i.department) | list %}
+        {% set sorted_interns = dept_interns | sort(attribute='attendance', reverse=True) %}
+        {% if sorted_interns %}
+          {% for s in sorted_interns[:7] %}
+            {% set rank = loop.index %}
+            {% set s_overall = ((s.attendance + s.project + s.communication * 10) / 3) | round | int %}
+            <div class="rank-row {% if s.id == i.id %}me{% endif %}">
+              <div class="rank-num {% if rank==1 %}gold{% elif rank==2 %}silver{% elif rank==3 %}bronze{% else %}other{% endif %}">
+                {% if rank == 1 %}🥇{% elif rank == 2 %}🥈{% elif rank == 3 %}🥉{% else %}{{ rank }}{% endif %}
+              </div>
+              <div class="rank-avatar">{{ s.name[0].upper() }}</div>
+              <div class="flex-1">
+                <div class="rank-name">{{ s.name }} {% if s.id == i.id %}<span style="font-size:.72rem;background:var(--purple);color:white;padding:1px 7px;border-radius:10px;">You</span>{% endif %}</div>
+                <div class="rank-dept">{{ s.department }}</div>
+              </div>
+              <div class="rank-score">{{ s_overall }}%</div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-muted small text-center py-3">No peers in your department yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Improvement Tips -->
+  <div class="tips-card">
+    <h6 class="fw-bold mb-3" style="color:#1e1b4b;"><i class="bi bi-lightbulb-fill me-2" style="color:#f59e0b;"></i>Personalised Improvement Tips</h6>
+    {% if i.attendance < 80 %}
+    <div class="tip-item">
+      <div class="tip-icon" style="background:#fee2e2;color:#dc2626;"><i class="bi bi-calendar-x"></i></div>
+      <div><div class="tip-title">Boost Your Attendance</div><div class="tip-text">Your attendance is at {{ i.attendance }}%. Aim for at least 85% to stay on track. Consistent presence builds credibility.</div></div>
+    </div>
+    {% endif %}
+    {% if i.tasks < 15 %}
+    <div class="tip-item">
+      <div class="tip-icon" style="background:#fef3c7;color:#d97706;"><i class="bi bi-list-check"></i></div>
+      <div><div class="tip-title">Complete More Tasks</div><div class="tip-text">You've completed {{ i.tasks | int }}/20 tasks. Try breaking large tasks into smaller steps and use daily to-do lists to stay on track.</div></div>
+    </div>
+    {% endif %}
+    {% if i.communication < 7 %}
+    <div class="tip-item">
+      <div class="tip-icon" style="background:#cffafe;color:#0891b2;"><i class="bi bi-chat-heart"></i></div>
+      <div><div class="tip-title">Sharpen Communication Skills</div><div class="tip-text">A score of {{ i.communication }}/10 shows room for growth. Practise active listening, write clear emails, and speak up in team meetings.</div></div>
+    </div>
+    {% endif %}
+    {% if i.project < 70 %}
+    <div class="tip-item">
+      <div class="tip-icon" style="background:#ede9fe;color:#7c3aed;"><i class="bi bi-folder-check"></i></div>
+      <div><div class="tip-title">Elevate Project Quality</div><div class="tip-text">Your project score is {{ i.project | round | int }}/100. Focus on thorough testing, documentation, and seeking feedback early in the development cycle.</div></div>
+    </div>
+    {% endif %}
+    {% if i.attendance >= 80 and i.tasks >= 15 and i.communication >= 7 and i.project >= 70 %}
+    <div class="tip-item">
+      <div class="tip-icon" style="background:#dcfce7;color:#16a34a;"><i class="bi bi-patch-check-fill"></i></div>
+      <div><div class="tip-title">You're Doing Great!</div><div class="tip-text">All your metrics are in the healthy range. Keep the momentum — consider mentoring new interns or taking on stretch projects to reach the next level.</div></div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% else %}
+  <div class="text-center py-5 text-muted">No performance data found.</div>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+{% if current_intern %}
+const d = {{ current_intern | tojson }};
+const overall = Math.round((d.attendance + d.project + d.communication * 10) / 3);
+
+// Bar Chart
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Attendance','Tasks','Communication','Project','Overall'],
+    datasets: [{
+      data: [d.attendance, (d.tasks/20*100).toFixed(0), d.communication*10, d.project, overall],
+      backgroundColor: ['#dbeafe','#dcfce7','#cffafe','#ede9fe','#fef3c7'],
+      borderColor:     ['#2563eb','#16a34a','#0891b2','#7c3aed','#d97706'],
+      borderWidth: 2,
+      borderRadius: 8
+    }]
+  },
+  options: {
+    plugins:{ legend:{ display:false } },
+    scales:{
+      y:{ min:0, max:100, grid:{ color:'#f3f4f6' }, ticks:{ callback: v => v+'%' } },
+      x:{ grid:{ display:false } }
+    }
+  }
+});
+
+// Radar Chart
+new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Attendance','Tasks','Communication','Project','Overall'],
+    datasets: [{
+      label: 'Your Scores',
+      data: [d.attendance, (d.tasks/20*100).toFixed(0), d.communication*10, d.project, overall],
+      backgroundColor: 'rgba(124,58,237,.15)',
+      borderColor: '#7c3aed',
+      borderWidth: 2,
+      pointBackgroundColor: '#7c3aed',
+      pointRadius: 4
+    }]
+  },
+  options: {
+    plugins:{ legend:{ display:false } },
+    scales:{
+      r:{
+        min:0, max:100,
+        ticks:{ display:false },
+        grid:{ color:'#e5e7eb' },
+        pointLabels:{ font:{ size:11 }, color:'#374151' }
+      }
+    }
+  }
+});
+{% endif %}
+</script>
+{% endblock %}

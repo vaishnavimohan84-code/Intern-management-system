@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% block title %}HR Profile{% endblock %}
+{% block extra_css %}
+<style>
+:root{--primary:#2563eb;--primary-light:#eff6ff;--primary-dark:#1d4ed8;--sidebar-bg:#0f172a;--body-bg:#f1f5f9;--card-bg:#fff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--light:#94a3b8;}
+*,*::before,*::after{box-sizing:border-box;}
+body{background:var(--body-bg);font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);}
+.sidebar{width:260px;min-height:100vh;background:var(--sidebar-bg);position:fixed;top:0;left:0;z-index:100;display:flex;flex-direction:column;}
+.sidebar .brand{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.07);}
+.sidebar .section-label{font-size:.68rem;font-weight:700;letter-spacing:1.2px;color:rgba(255,255,255,.25);padding:16px 20px 5px;text-transform:uppercase;}
+.sidebar .nav-link{color:rgba(255,255,255,.7);padding:9px 20px;border-radius:8px;margin:1px 10px;transition:all .18s;font-size:.88rem;display:flex;align-items:center;}
+.sidebar .nav-link:hover{background:rgba(255,255,255,.06);color:#fff;}
+.sidebar .nav-link.active{background:rgba(37,99,235,.18);color:#60a5fa;font-weight:600;}
+.sidebar .nav-link i{width:20px;}
+.sidebar-profile{margin:10px 12px 14px;padding:12px 14px;background:rgba(255,255,255,.05);border-radius:10px;border:1px solid rgba(255,255,255,.07);}
+.sidebar-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;color:white;flex-shrink:0;}
+.main{margin-left:260px;padding:28px;min-height:100vh;}
+.topbar{background:var(--card-bg);border-radius:14px;padding:16px 24px;margin-bottom:24px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.profile-hero{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 55%,#1d4ed8 100%);border-radius:16px 16px 0 0;padding:36px 36px 0;position:relative;overflow:hidden;}
+.profile-hero::before{content:'';position:absolute;top:-70px;right:-70px;width:260px;height:260px;background:rgba(96,165,250,.12);border-radius:50%;}
+.hero-avatar{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:700;color:white;border:4px solid rgba(255,255,255,.18);position:relative;z-index:1;}
+.hero-tabs{display:flex;margin-top:28px;position:relative;z-index:1;}
+.hero-tab{padding:10px 22px;cursor:pointer;border:none;background:none;color:rgba(255,255,255,.5);font-size:.88rem;font-weight:500;border-bottom:3px solid transparent;transition:all .18s;}
+.hero-tab.active{color:#fff;border-bottom-color:#60a5fa;}
+.hero-tab:hover{color:rgba(255,255,255,.85);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+.card{background:var(--card-bg);border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:0;}
+.card-head{padding:16px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-head h6{margin:0;font-weight:700;font-size:.93rem;}
+.cbp{padding:20px 22px;}
+.info-row{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid #f8fafc;}
+.info-row:last-child{border-bottom:none;padding-bottom:0;}
+.info-label{width:160px;min-width:160px;font-size:.78rem;color:var(--light);font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding-top:2px;}
+.info-value{font-size:.92rem;color:var(--text);}
+.bp{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 11px;font-size:.78rem;font-weight:600;}
+.bp-blue{background:#eff6ff;color:#2563eb;}
+.bp-green{background:#f0fdf4;color:#16a34a;}
+.bp-amber{background:#fffbeb;color:#d97706;}
+.bp-red{background:#fef2f2;color:#dc2626;}
+.bp-accent{background:#fef2f4;color:#e94560;}
+.mini-stat{background:var(--card-bg);border-radius:12px;padding:18px 20px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;}
+.mini-stat .icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.form-label{font-weight:600;font-size:.83rem;color:#374151;margin-bottom:5px;}
+.form-control,.form-select,textarea.form-control{border:1px solid var(--border);border-radius:8px;font-size:.9rem;padding:8px 12px;transition:border-color .15s,box-shadow .15s;}
+.form-control:focus,.form-select:focus,textarea.form-control:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12);outline:none;}
+.btn-save{background:var(--primary);border:none;color:white;font-weight:600;padding:9px 26px;border-radius:8px;transition:all .18s;font-size:.9rem;cursor:pointer;}
+.btn-save:hover{background:var(--primary-dark);color:white;transform:translateY(-1px);}
+.strength-bar{height:4px;border-radius:2px;background:#e2e8f0;margin-top:6px;overflow:hidden;}
+.strength-fill{height:100%;border-radius:2px;transition:all .3s;}
+.activity-item{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid #f8fafc;}
+.activity-item:last-child{border-bottom:none;}
+.qa{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;text-decoration:none;font-size:.88rem;font-weight:500;transition:all .15s;margin-bottom:8px;}
+.qa-blue{background:#eff6ff;color:#2563eb;}
+.qa-blue:hover{background:#dbeafe;color:#1d4ed8;}
+.qa-green{background:#f0fdf4;color:#16a34a;}
+.qa-green:hover{background:#dcfce7;color:#15803d;}
+.qa-red{background:#fef2f4;color:#e94560;}
+.qa-red:hover{background:#fecdd3;color:#be123c;}
+</style>
+{% endblock %}
+{% block body %}
+<nav class="sidebar">
+  <div class="brand">
+    <div class="d-flex align-items-center gap-2">
+      <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;"><i class="bi bi-people-fill text-white" style="font-size:1rem"></i></div>
+      <div><div class="text-white fw-bold" style="font-size:.95rem">InternMS</div><div class="text-white-50" style="font-size:.68rem">HR Management</div></div>
+    </div>
+  </div>
+  <div class="section-label">Main</div>
+  <ul class="nav flex-column">
+    <li><a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+    <li><a class="nav-link" href="/add_intern"><i class="bi bi-person-plus me-2"></i>Add Intern</a></li>
+    <li><a class="nav-link" href="/manage_interns"><i class="bi bi-people me-2"></i>Manage Interns</a></li>
+    <li><a class="nav-link" href="/reports"><i class="bi bi-bar-chart-line me-2"></i>Reports</a></li>
+  </ul>
+  <div class="section-label">Account</div>
+  <ul class="nav flex-column flex-grow-1">
+    <li><a class="nav-link active" href="/hr_profile"><i class="bi bi-person-circle me-2"></i>My Profile</a></li>
+    <li><a class="nav-link" href="/change_hr_password"><i class="bi bi-key me-2"></i>Change Password</a></li>
+  </ul>
+  <div class="sidebar-profile">
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <div class="sidebar-avatar">{{ hr.avatar_initials or 'HR' }}</div>
+      <div style="min-width:0"><div class="text-white fw-semibold text-truncate" style="font-size:.82rem">{{ hr.full_name or hr.username }}</div><div class="text-white-50" style="font-size:.7rem">{{ hr.role or 'HR Manager' }}</div></div>
+    </div>
+    <a href="/logout" class="btn btn-sm w-100" style="background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.2);font-size:.78rem;"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div><h5 class="mb-0 fw-bold">My Profile</h5><small class="text-muted">Manage your account &amp; information</small></div>
+    <div class="d-flex align-items-center gap-2">
+      <span class="bp bp-blue"><i class="bi bi-shield-check"></i>{{ hr.role or 'HR Manager' }}</span>
+      <a href="/dashboard" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+    </div>
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}{% for cat, msg in msgs %}
+  <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endwith %}
+
+  <!-- Hero -->
+  <div class="profile-hero">
+    <div class="d-flex align-items-end gap-4">
+      <div><div class="hero-avatar">{{ hr.avatar_initials or 'HR' }}</div><div class="text-center mt-1" style="font-size:.7rem;color:rgba(255,255,255,.3)">Avatar</div></div>
+      <div class="pb-3" style="position:relative;z-index:1">
+        <h3 class="text-white fw-bold mb-1">{{ hr.full_name or hr.username }}</h3>
+        <div class="d-flex flex-wrap gap-3 mb-2" style="color:rgba(255,255,255,.65);font-size:.84rem">
+          {% if hr.email %}<span><i class="bi bi-envelope me-1"></i>{{ hr.email }}</span>{% endif %}
+          {% if hr.phone %}<span><i class="bi bi-telephone me-1"></i>{{ hr.phone }}</span>{% endif %}
+          {% if hr.location %}<span><i class="bi bi-geo-alt me-1"></i>{{ hr.location }}</span>{% endif %}
+          <span><i class="bi bi-building me-1"></i>{{ hr.department or 'Human Resources' }}</span>
+        </div>
+        <span class="bp bp-accent"><i class="bi bi-shield-fill-check"></i>{{ hr.role or 'HR Manager' }}</span>
+      </div>
+    </div>
+    <div class="hero-tabs">
+      <button class="hero-tab active" onclick="switchTab('overview',this)"><i class="bi bi-person me-1"></i>Overview</button>
+      <button class="hero-tab" onclick="switchTab('edit',this)"><i class="bi bi-pencil me-1"></i>Edit Profile</button>
+      <button class="hero-tab" onclick="switchTab('security',this)"><i class="bi bi-lock me-1"></i>Security</button>
+      <button class="hero-tab" onclick="switchTab('activity',this)"><i class="bi bi-clock-history me-1"></i>Activity</button>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="tab-pane active mt-4" id="tab-overview">
+    <div class="row g-4">
+      <div class="col-12">
+        <div class="row g-3">
+          {% for label,val,icon,bg,clr in [('Total Interns',total,'bi-people-fill','#eff6ff','#2563eb'),('High Performers',high,'bi-award-fill','#f0fdf4','#16a34a'),('Medium Performers',medium,'bi-bar-chart-fill','#fffbeb','#d97706'),('Low Performers',low,'bi-exclamation-circle-fill','#fef2f2','#dc2626')] %}
+          <div class="col-6 col-md-3"><div class="mini-stat"><div class="icon" style="background:{{ bg }};color:{{ clr }}"><i class="bi {{ icon }}"></i></div><div><div style="font-size:.75rem;color:#94a3b8">{{ label }}</div><div class="fw-bold fs-4" style="color:{{ clr }}">{{ val }}</div></div></div></div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-md-7">
+        <div class="card">
+          <div class="card-head"><h6><i class="bi bi-person text-primary me-2"></i>Personal Information</h6><button class="btn btn-sm btn-outline-primary" onclick="switchTab('edit',document.querySelectorAll('.hero-tab')[1])"><i class="bi bi-pencil me-1"></i>Edit</button></div>
+          <div class="cbp">
+            {% for label,val,icon in [('Full Name',hr.full_name or '—','bi-person'),('Email',hr.email or '—','bi-envelope'),('Phone',hr.phone or '—','bi-telephone'),('Gender',hr.gender or '—','bi-gender-ambiguous'),('Location',hr.location or '—','bi-geo-alt'),('Department',hr.department or '—','bi-building'),('Role',hr.role or 'HR Manager','bi-briefcase')] %}
+            <div class="info-row"><div class="info-label"><i class="bi {{ icon }} me-1"></i>{{ label }}</div><div class="info-value">{{ val }}</div></div>
+            {% endfor %}
+            <div class="info-row"><div class="info-label"><i class="bi bi-file-text me-1"></i>Bio</div><div class="info-value" style="font-size:.88rem;color:#475569;line-height:1.6">{{ hr.bio or '—' }}</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div class="card mb-3">
+          <div class="card-head"><h6><i class="bi bi-shield text-primary me-2"></i>Account Details</h6></div>
+          <div class="cbp">
+            <div class="info-row"><div class="info-label">Username</div><div class="info-value" style="font-family:monospace;font-size:.85rem">{{ hr.username }}</div></div>
+            <div class="info-row"><div class="info-label">Status</div><div class="info-value"><span class="bp bp-green"><i class="bi bi-check-circle-fill"></i>Active</span></div></div>
+            <div class="info-row"><div class="info-label">Password</div><div class="info-value"><span class="text-muted font-monospace">••••••••</span> <a href="#" class="ms-2 text-primary small" onclick="switchTab('security',document.querySelectorAll('.hero-tab')[2]);return false;">Change</a></div></div>
+            <div class="info-row"><div class="info-label">Access Level</div><div class="info-value"><span class="bp bp-blue">Full HR Access</span></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h6><i class="bi bi-lightning text-primary me-2"></i>Quick Actions</h6></div>
+          <div class="cbp">
+            <a href="/add_intern" class="qa qa-blue"><i class="bi bi-person-plus-fill"></i>Add New Intern</a>
+            <a href="/manage_interns" class="qa qa-green"><i class="bi bi-people-fill"></i>Manage Interns</a>
+            <a href="/reports" class="qa qa-red"><i class="bi bi-bar-chart-fill"></i>View Reports</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT PROFILE -->
+  <div class="tab-pane mt-4" id="tab-edit">
+    <div class="row g-4">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-head"><h6><i class="bi bi-pencil-square text-primary me-2"></i>Edit Profile Information</h6></div>
+          <div class="cbp">
+            <form method="POST" action="/hr_profile_update">
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Full Name *</label><input type="text" name="full_name" class="form-control" value="{{ hr.full_name or '' }}" required placeholder="e.g. Ramya Krishnan"/></div>
+                <div class="col-md-6"><label class="form-label">Avatar Initials <small class="text-muted fw-normal">(2-3 letters)</small></label><input type="text" name="avatar_initials" class="form-control" value="{{ hr.avatar_initials or 'HR' }}" maxlength="3" style="text-transform:uppercase"/></div>
+                <div class="col-md-6"><label class="form-label">Email Address</label><input type="email" name="email" class="form-control" value="{{ hr.email or '' }}" placeholder="hr@company.com"/></div>
+                <div class="col-md-6"><label class="form-label">Phone Number</label><input type="text" name="phone" class="form-control" value="{{ hr.phone or '' }}" placeholder="+91 98765 43210"/></div>
+                <div class="col-md-6"><label class="form-label">Gender</label><select name="gender" class="form-select">{% for g in ['Male','Female','Other','Prefer not to say'] %}<option {% if hr.gender==g %}selected{% endif %}>{{ g }}</option>{% endfor %}</select></div>
+                <div class="col-md-6"><label class="form-label">Location</label><input type="text" name="location" class="form-control" value="{{ hr.location or '' }}" placeholder="City, State"/></div>
+                <div class="col-md-6"><label class="form-label">Department</label><select name="department" class="form-select">{% for d in ['Human Resources','Administration','Operations','Finance','Technology','Management'] %}<option {% if hr.department==d %}selected{% endif %}>{{ d }}</option>{% endfor %}</select></div>
+                <div class="col-md-6"><label class="form-label">Role / Designation</label><input type="text" name="role" class="form-control" value="{{ hr.role or 'HR Manager' }}" placeholder="HR Manager"/></div>
+                <div class="col-12"><label class="form-label">Professional Bio</label><textarea name="bio" class="form-control" rows="3" placeholder="Brief description of your role and experience...">{{ hr.bio or '' }}</textarea></div>
+              </div>
+              <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn-save"><i class="bi bi-check-lg me-1"></i>Save Changes</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="switchTab('overview',document.querySelectorAll('.hero-tab')[0])">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-head"><h6><i class="bi bi-person-bounding-box text-primary me-2"></i>Live Preview</h6></div>
+          <div class="cbp text-center py-4">
+            <div id="avatarPreview" style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:1.9rem;font-weight:700;color:white;margin:0 auto 14px;">{{ hr.avatar_initials or 'HR' }}</div>
+            <div class="fw-bold" id="previewName">{{ hr.full_name or hr.username }}</div>
+            <div class="text-muted small" id="previewRole">{{ hr.role or 'HR Manager' }}</div>
+            <div class="text-muted small" id="previewDept">{{ hr.department or 'Human Resources' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECURITY -->
+  <div class="tab-pane mt-4" id="tab-security">
+    <div class="row g-4">
+      <div class="col-md-7">
+        <div class="card">
+          <div class="card-head"><h6><i class="bi bi-lock text-primary me-2"></i>Change Password</h6></div>
+          <div class="cbp">
+            <form method="POST" action="/change_hr_password">
+              <div class="mb-3"><label class="form-label">Current Password</label><div class="input-group"><input type="password" name="current_password" id="curPw" class="form-control" required/><button class="btn btn-outline-secondary" type="button" onclick="togglePw('curPw',this)"><i class="bi bi-eye"></i></button></div></div>
+              <div class="mb-3"><label class="form-label">New Password <small class="text-muted fw-normal">(min 6 chars)</small></label><div class="input-group"><input type="password" name="new_password" id="newPw" class="form-control" required minlength="6" oninput="checkStrength(this.value)"/><button class="btn btn-outline-secondary" type="button" onclick="togglePw('newPw',this)"><i class="bi bi-eye"></i></button></div><div class="strength-bar"><div class="strength-fill" id="strengthFill" style="width:0%;background:#e94560"></div></div><small id="strengthLabel" class="text-muted">Enter a password</small></div>
+              <div class="mb-4"><label class="form-label">Confirm New Password</label><div class="input-group"><input type="password" name="confirm_password" id="conPw" class="form-control" required minlength="6"/><button class="btn btn-outline-secondary" type="button" onclick="togglePw('conPw',this)"><i class="bi bi-eye"></i></button></div></div>
+              <button type="submit" class="btn-save"><i class="bi bi-check-lg me-1"></i>Update Password</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div class="card">
+          <div class="card-head"><h6><i class="bi bi-shield-check text-primary me-2"></i>Security Tips</h6></div>
+          <div class="cbp">
+            {% for tip,icon,c in [('Use at least 8 characters','bi-check-circle-fill','success'),('Mix uppercase & lowercase','bi-check-circle-fill','success'),('Include numbers & symbols','bi-check-circle-fill','success'),("Don't reuse old passwords",'bi-info-circle-fill','primary'),('Change password regularly','bi-info-circle-fill','primary')] %}
+            <div class="d-flex align-items-center gap-2 mb-2"><i class="bi {{ icon }} text-{{ c }}" style="font-size:.85rem"></i><small class="text-muted">{{ tip }}</small></div>
+            {% endfor %}
+            <hr/>
+            <div class="p-3 rounded-2" style="background:#fffbeb;border:1px solid #fef3c7"><small class="fw-bold" style="color:#92400e"><i class="bi bi-exclamation-triangle me-1"></i>Default password</small><div class="mt-1" style="font-size:.8rem;color:#78350f">If you haven't changed <code>hr123</code>, do it now for security.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVITY -->
+  <div class="tab-pane mt-4" id="tab-activity">
+    <div class="row g-4">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-head"><h6><i class="bi bi-clock-history text-primary me-2"></i>Recent Activity</h6></div>
+          <div class="cbp">
+            {% for action,desc,clr,icon in [('Added intern','New intern record created and performance predicted','#16a34a','bi-person-plus-fill'),('Edited record','Intern scores updated and performance re-evaluated','#2563eb','bi-pencil-fill'),('Viewed reports','Performance report accessed','#d97706','bi-bar-chart-fill'),('Password changed','Account password updated successfully','#7c3aed','bi-key-fill'),('Profile updated','Profile information edited','#0891b2','bi-person-lines-fill'),('Logged in','Session started from HR portal','#e94560','bi-box-arrow-in-right')] %}
+            <div class="activity-item"><div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:{{ clr }}18"><i class="bi {{ icon }}" style="color:{{ clr }};font-size:.85rem"></i></div><div><div class="fw-semibold" style="font-size:.88rem">{{ action }}</div><div class="text-muted small">{{ desc }}</div></div></div>
+            {% endfor %}
+            <div class="text-center mt-3 pt-2" style="border-top:1px solid #f1f5f9"><small class="text-muted"><i class="bi bi-info-circle me-1"></i>Activity log is illustrative — full audit logging can be added.</small></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-head"><h6><i class="bi bi-graph-up text-primary me-2"></i>Your Stats</h6></div>
+          <div class="cbp">
+            {% for label,val,clr in [('Total Interns Managed',total,'#2563eb'),('High Performers',high,'#16a34a'),('Medium Performers',medium,'#d97706'),('Low Performers',low,'#dc2626')] %}
+            <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid #f8fafc"><span style="font-size:.85rem;color:#64748b">{{ label }}</span><span class="fw-bold" style="color:{{ clr }}">{{ val }}</span></div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(name,btn){document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.hero-tab').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+name).classList.add('active');if(btn)btn.classList.add('active');}
+function togglePw(id,btn){const f=document.getElementById(id);const show=f.type==='password';f.type=show?'text':'password';btn.innerHTML=show?'<i class="bi bi-eye-slash"></i>':'<i class="bi bi-eye"></i>';}
+function checkStrength(pw){let s=0;if(pw.length>=6)s++;if(pw.length>=10)s++;if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;const c=['#e94560','#f59e0b','#f59e0b','#16a34a','#16a34a'],l=['Too short','Weak','Fair','Strong','Very strong'],p=[10,30,55,80,100],i=Math.min(s,4);document.getElementById('strengthFill').style.cssText=`width:${p[i]}%;background:${c[i]}`;const el=document.getElementById('strengthLabel');el.textContent=l[i];el.style.color=c[i];}
+document.addEventListener('DOMContentLoaded',()=>{
+  const ii=document.querySelector('[name="avatar_initials"]'),ni=document.querySelector('[name="full_name"]'),ri=document.querySelector('[name="role"]'),di=document.querySelector('[name="department"]');
+  if(ii)ii.addEventListener('input',e=>{const v=e.target.value.toUpperCase().slice(0,3);document.getElementById('avatarPreview').textContent=v||'HR';document.querySelectorAll('.hero-avatar').forEach(a=>a.textContent=v||'HR');});
+  if(ni)ni.addEventListener('input',e=>{const el=document.getElementById('previewName');if(el)el.textContent=e.target.value||'HR Manager';});
+  if(ri)ri.addEventListener('input',e=>{const el=document.getElementById('previewRole');if(el)el.textContent=e.target.value||'HR Manager';});
+  if(di)di.addEventListener('change',e=>{const el=document.getElementById('previewDept');if(el)el.textContent=e.target.value;});
+});
+const flash=document.querySelector('.alert');
+if(flash&&(flash.textContent.includes('password')||flash.textContent.includes('Password')))switchTab('security',document.querySelectorAll('.hero-tab')[2]);
+</script>
+{% endblock %}

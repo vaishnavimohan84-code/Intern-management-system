@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Prediction Result{% endblock %}
+{% block extra_css %}
+<style>
+:root{--red:#e94560;}
+body{background:#f0f2f5;}
+.sidebar{width:240px;min-height:100vh;background:linear-gradient(180deg,#1a1a2e,#16213e);position:fixed;top:0;left:0;z-index:100;display:flex;flex-direction:column;}
+.sidebar .brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sidebar .nav-link{color:rgba(255,255,255,.65);padding:10px 18px;border-radius:8px;margin:2px 10px;font-size:.88rem;display:flex;align-items:center;transition:all .18s;}
+.sidebar .nav-link:hover,.sidebar .nav-link.active{background:rgba(233,69,96,.18);color:var(--red);}
+.sidebar .nav-link i{width:20px;margin-right:10px;}
+.sidebar-bottom{padding:14px;margin-top:auto;}
+.topbar{background:white;border-radius:12px;padding:14px 22px;margin-bottom:22px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;}
+.main{margin-left:240px;padding:24px;}
+.result-card{background:white;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:28px;}
+.intern-avatar{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:white;}
+.perf-badge{display:inline-block;padding:6px 18px;border-radius:30px;font-weight:700;font-size:1rem;}
+.badge-high{background:#d1fae5;color:#065f46;}
+.badge-medium{background:#fef3c7;color:#92400e;}
+.badge-low{background:#fee2e2;color:#991b1b;}
+.score-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f3f4f6;}
+.score-item:last-child{border-bottom:none;}
+.score-bar-wrap{width:140px;height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden;margin-top:2px;}
+.score-bar-fill{height:100%;border-radius:4px;background:#2563eb;}
+.cred-box{background:#f8f9fa;border:2px dashed #dee2e6;border-radius:10px;padding:16px;}
+@media print{.sidebar,.topbar,.no-print{display:none!important}.main{margin-left:0!important}}
+</style>
+{% endblock %}
+{% block body %}
+<nav class="sidebar no-print">
+  <div class="brand d-flex align-items-center gap-2">
+    <div style="width:34px;height:34px;border-radius:8px;background:var(--red);display:flex;align-items:center;justify-content:center;"><i class="bi bi-people-fill text-white"></i></div>
+    <div class="text-white fw-bold" style="font-size:.95rem">IPS</div>
+  </div>
+  <ul class="nav flex-column mt-2">
+    <li><a class="nav-link" href="/dashboard"><i class="bi bi-house-fill"></i>Dashboard</a></li>
+    <li><a class="nav-link active" href="/add_intern"><i class="bi bi-person-plus"></i>Add Intern</a></li>
+    <li><a class="nav-link" href="/manage_interns"><i class="bi bi-grid"></i>Manage Interns</a></li>
+    <li><a class="nav-link" href="/reports"><i class="bi bi-bar-chart"></i>Reports</a></li>
+    <li><a class="nav-link" href="/hr_profile"><i class="bi bi-person-circle"></i>Profile</a></li>
+  </ul>
+  <div class="sidebar-bottom">
+    <a class="nav-link text-danger" href="/logout" style="margin:0"><i class="bi bi-box-arrow-right"></i>Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar no-print">
+    <div>
+      <a href="/manage_interns" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left me-1"></i>Back to Interns</a>
+      <h5 class="mb-0 fw-bold mt-1">Prediction Result</h5>
+    </div>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer me-1"></i>Print</button>
+      <a href="/add_intern" class="btn btn-sm btn-danger"><i class="bi bi-plus-lg me-1"></i>Add Another</a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left: Intern Info & Prediction -->
+    <div class="col-md-5">
+      <div class="result-card">
+        <!-- Intern header -->
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div class="intern-avatar" style="background:linear-gradient(135deg,#e94560,#c73652)">{{ name[:2]|upper }}</div>
+          <div>
+            <div class="fw-bold fs-5">{{ name }}</div>
+            <div class="text-muted small">{{ department }} Department</div>
+            {% if domain %}<div class="small" style="color:#7c3aed;font-weight:600"><i class="bi bi-tag me-1"></i>{{ domain }}</div>{% endif %}
+            <div class="text-muted small">{{ name|lower|replace(' ','') }}@gmail.com</div>
+          </div>
+        </div>
+        <div class="mb-4">
+          <div class="text-muted small fw-semibold text-uppercase mb-2" style="letter-spacing:.5px">Predicted Performance</div>
+          <div class="perf-badge badge-{{ prediction|lower }} fs-5">
+            {% if prediction == 'High' %}🏆{% elif prediction == 'Medium' %}📊{% else %}⚠️{% endif %}
+            {{ prediction }} Performer
+          </div>
+        </div>
+        <div>
+          <div class="text-muted small fw-semibold text-uppercase mb-2" style="letter-spacing:.5px">Confidence Score</div>
+          <div style="position:relative;width:120px;height:120px;margin:0 auto">
+            <canvas id="gaugeCanvas" width="120" height="120"></canvas>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+              <div class="fw-bold fs-4" style="color:#16a34a">85%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Score Summary -->
+    <div class="col-md-7">
+      <div class="result-card mb-3">
+        <h6 class="fw-bold mb-4 text-uppercase text-muted" style="font-size:.75rem;letter-spacing:1px">Score Summary</h6>
+        {% if domain %}
+        <div class="score-item">
+          <span class="text-muted small">Domain</span>
+          <span class="fw-semibold small" style="color:#7c3aed">{{ domain }}</span>
+        </div>
+        {% endif %}
+        <div class="score-item">
+          <span>Attendance</span>
+          <div class="text-end"><strong>{{ attendance }}%</strong><div class="score-bar-wrap"><div class="score-bar-fill" style="width:{{ attendance }}%;background:#2563eb"></div></div></div>
+        </div>
+        <div class="score-item">
+          <span>Project Score</span>
+          <div class="text-end"><strong>{{ project }}/100</strong><div class="score-bar-wrap"><div class="score-bar-fill" style="width:{{ project }}%;background:#7c3aed"></div></div></div>
+        </div>
+        <div class="score-item">
+          <span>Communication Score</span>
+          <div class="text-end"><strong>{{ communication }}/10</strong><div class="score-bar-wrap"><div class="score-bar-fill" style="width:{{ (communication/10*100)|int }}%;background:#0891b2"></div></div></div>
+        </div>
+        <div class="score-item">
+          <span>Task Completion</span>
+          <div class="text-end"><strong>{{ tasks }}/20</strong><div class="score-bar-wrap"><div class="score-bar-fill" style="width:{{ (tasks/20*100)|int }}%;background:#16a34a"></div></div></div>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <h6 class="fw-bold mb-3"><i class="bi bi-key me-2 text-warning"></i>Intern Login Credentials</h6>
+        <div class="cred-box">
+          <div class="row g-3">
+            <div class="col-6"><div class="text-muted small">Username</div><code class="fs-6">{{ name }}</code></div>
+            <div class="col-6"><div class="text-muted small">Password</div><code class="fs-6">{{ intern_password }}</code></div>
+          </div>
+          <small class="text-muted d-block mt-2"><i class="bi bi-info-circle me-1"></i>Share this with the intern. Only shown once.</small>
+        </div>
+        <div class="mt-3 d-flex gap-2 no-print">
+          <a href="/manage_interns" class="btn btn-outline-secondary btn-sm"><i class="bi bi-people me-1"></i>View All Interns</a>
+          <a href="/add_intern" class="btn btn-danger btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Another</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Doughnut gauge
+new Chart(document.getElementById('gaugeCanvas'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [85, 15],
+      backgroundColor: ['#16a34a', '#e5e7eb'],
+      borderWidth: 0
+    }]
+  },
+  options: { cutout: '72%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}Add Intern{% endblock %}
+{% block extra_css %}
+<style>
+:root{--red:#e94560;--sidebar:#1a1a2e;--sidebar2:#16213e;}
+body{background:#f0f2f5;}
+.sidebar{width:240px;min-height:100vh;background:linear-gradient(180deg,var(--sidebar),var(--sidebar2));position:fixed;top:0;left:0;z-index:100;display:flex;flex-direction:column;}
+.sidebar .brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sidebar .nav-link{color:rgba(255,255,255,.65);padding:10px 18px;border-radius:8px;margin:2px 10px;font-size:.88rem;display:flex;align-items:center;transition:all .18s;}
+.sidebar .nav-link:hover,.sidebar .nav-link.active{background:rgba(233,69,96,.18);color:var(--red);}
+.sidebar .nav-link i{width:20px;margin-right:10px;}
+.sidebar-bottom{padding:14px;margin-top:auto;}
+.topbar{background:white;border-radius:12px;padding:14px 22px;margin-bottom:22px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;}
+.main{margin-left:240px;padding:24px;}
+.form-card{background:white;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:28px;}
+.section-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #f3f4f6;}
+.form-label{font-weight:600;font-size:.84rem;color:#374151;margin-bottom:6px;}
+.form-control,.form-select{border:1.5px solid #e5e7eb;border-radius:9px;padding:9px 13px;font-size:.9rem;transition:all .18s;}
+.form-control:focus,.form-select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(233,69,96,.1);outline:none;}
+.range-val{font-weight:700;color:var(--red);min-width:40px;text-align:right;}
+.btn-predict{background:linear-gradient(135deg,var(--red),#c73652);border:none;color:white;font-weight:700;padding:11px 28px;border-radius:9px;font-size:.92rem;transition:all .2s;}
+.btn-predict:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(233,69,96,.35);color:white;}
+</style>
+{% endblock %}
+{% block body %}
+<nav class="sidebar">
+  <div class="brand d-flex align-items-center gap-2">
+    <div style="width:34px;height:34px;border-radius:8px;background:var(--red);display:flex;align-items:center;justify-content:center;"><i class="bi bi-people-fill text-white"></i></div>
+    <div class="text-white fw-bold" style="font-size:.95rem">IPS</div>
+  </div>
+  <ul class="nav flex-column mt-2">
+    <li><a class="nav-link" href="/dashboard"><i class="bi bi-house-fill"></i>Dashboard</a></li>
+    <li><a class="nav-link active" href="/add_intern"><i class="bi bi-person-plus"></i>Add Intern</a></li>
+    <li><a class="nav-link" href="/manage_interns"><i class="bi bi-grid"></i>Manage Interns</a></li>
+    <li><a class="nav-link" href="/reports"><i class="bi bi-bar-chart"></i>Reports</a></li>
+    <li><a class="nav-link" href="/hr_profile"><i class="bi bi-person-circle"></i>Profile</a></li>
+  </ul>
+  <div class="sidebar-bottom">
+    <a class="nav-link text-danger" href="/logout" style="margin:0"><i class="bi bi-box-arrow-right"></i>Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <h5 class="mb-0 fw-bold">Add New Intern</h5>
+    <a href="/dashboard" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="form-card">
+    <form method="POST" action="/predict">
+      <!-- Personal Information -->
+      <div class="section-title">Personal Information</div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label class="form-label">Full Name</label>
+          <input type="text" name="name" class="form-control" placeholder="Enter full name" required/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" placeholder="Enter email" disabled style="background:#f9fafb;color:#9ca3af"/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Department</label>
+          <select name="department" class="form-select" required>
+            <option value="">Select department</option>
+            <option>Computer Science and Engineering (CSE)</option>
+            <option>Artificial Intelligence and Machine Learning (AI &amp; ML)</option>
+            <option>Data Science</option>
+            <option>Information Technology (IT)</option>
+            <option>Computer Applications (BCA)</option>
+            <option>Master of Computer Applications (MCA)</option>
+            <option>Statistics</option>
+            <option>Mathematics</option>
+            <option>Data Analytics</option>
+            <option>Business Analytics</option>
+            <option>Educational Technology</option>
+            <option>Education Department</option>
+            <option>Psychology</option>
+            <option>Sociology</option>
+            <option>Economics</option>
+            <option>Management Studies</option>
+            <option>Commerce</option>
+            <option>Operations Research</option>
+            <option>Artificial Intelligence</option>
+            <option>Software Engineering</option>
+            <option>Information Systems</option>
+            <option>Computational Science</option>
+            <option>Digital Learning and Analytics</option>
+            <option>Educational Data Mining</option>
+            <option>Learning Sciences</option>
+            <option>Predictive Analytics</option>
+            <option>Full Stack Development</option>
+            <option>Cybersecurity</option>
+            <option>Cloud Computing</option>
+            <option>UI/UX Design</option>
+            <option>DevOps</option>
+            <option>Mobile Development</option>
+            <option>Backend Development</option>
+            <option>Frontend Development</option>
+            <option>Machine Learning</option>
+            <option>Blockchain</option>
+            <option>IoT</option>
+            <option>Game Development</option>
+            <option>Quality Assurance</option>
+            <option>Digital Marketing</option>
+            <option>Product Management</option>
+            <option>Network Engineering</option>
+            <option>Database Administration</option>
+            <optgroup label="── UG (Undergraduate) Departments ──" disabled></optgroup>
+            <option>B.Sc. Computer Science</option>
+            <option>B.Sc. Information Technology</option>
+            <option>B.Sc. Artificial Intelligence &amp; Data Science</option>
+            <option>B.Sc. Data Science</option>
+            <option>B.Sc. Mathematics</option>
+            <option>B.Sc. Physics</option>
+            <option>B.Sc. Chemistry</option>
+            <option>B.Sc. Zoology</option>
+            <option>B.Sc. Botany</option>
+            <option>B.Sc. Biotechnology</option>
+            <option>B.Sc. Microbiology</option>
+            <option>B.Com.</option>
+            <option>B.Com. CA (Computer Applications)</option>
+            <option>B.Com. Accounting &amp; Finance</option>
+            <option>BBA (Business Administration)</option>
+            <option>BA English Literature</option>
+            <option>BA Tamil Literature</option>
+            <option>BA History</option>
+            <option>BA Economics</option>
+            <option>BA Sociology</option>
+            <option>BSW (Social Work)</option>
+            <option>BCA (Computer Applications)</option>
+            <option>B.Sc. Psychology</option>
+            <option>B.Sc. Visual Communication</option>
+            <optgroup label="── PG (Postgraduate) Departments ──" disabled></optgroup>
+            <option>M.Sc. Computer Science</option>
+            <option>M.Sc. Information Technology</option>
+            <option>M.Sc. Data Science</option>
+            <option>M.Sc. Artificial Intelligence</option>
+            <option>M.Sc. Mathematics</option>
+            <option>M.Sc. Physics</option>
+            <option>M.Sc. Chemistry</option>
+            <option>M.Sc. Biotechnology</option>
+            <option>M.Sc. Microbiology</option>
+            <option>M.Com.</option>
+            <option>MBA (Master of Business Administration)</option>
+            <option>MA English Literature</option>
+            <option>MA Tamil Literature</option>
+            <option>MA History</option>
+            <option>MA Economics</option>
+            <option>MA Sociology</option>
+            <option>MSW (Master of Social Work)</option>
+            <option>MCA (Master of Computer Applications)</option>
+            <option>M.Sc. Psychology</option>
+            <option>M.Sc. Visual Communication</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Password</label>
+          <input type="text" class="form-control" placeholder="Auto-generated" disabled style="background:#f9fafb;color:#9ca3af"/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Domain</label>
+          <select name="domain" class="form-select" required>
+            <option value="">Select domain</option>
+            <option>Full Stack</option>
+            <option>AI &amp; ML</option>
+            <option>Data Analytics</option>
+            <option>Machine Learning</option>
+            <option>Finance</option>
+            <option>AWS DevOps</option>
+            <option>Cybersecurity</option>
+            <option>UI/UX Design</option>
+            <option>Cloud Computing</option>
+            <option>Mobile Development</option>
+            <option>Python Development</option>
+            <option>Data Science</option>
+            <option>Web Development</option>
+            <option>Backend Development</option>
+            <option>Frontend Development</option>
+            <option>Software Engineering</option>
+            <option>Artificial Intelligence</option>
+            <option>Business Analytics</option>
+            <option>Predictive Analytics</option>
+            <option>Digital Marketing</option>
+            <option>Product Management</option>
+            <option>Network Engineering</option>
+            <option>Database Administration</option>
+            <option>IoT</option>
+            <option>Blockchain</option>
+            <option>Game Development</option>
+            <option>Quality Assurance</option>
+            <option>DevOps</option>
+            <option>Information Systems</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Performance Data -->
+      <div class="section-title">Performance Data</div>
+      <div class="row g-4">
+        <div class="col-md-6">
+          <label class="form-label d-flex justify-content-between">Attendance (%) <span class="range-val" id="attVal">80</span></label>
+          <input type="range" name="attendance" class="form-range" min="0" max="100" step="1" value="80" oninput="document.getElementById('attVal').textContent=this.value"/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label d-flex justify-content-between">Project Score (0-100) <span class="range-val" id="projVal">50</span></label>
+          <input type="range" name="project" class="form-range" min="0" max="100" step="1" value="50" oninput="document.getElementById('projVal').textContent=this.value"/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label d-flex justify-content-between">Communication Score (0-10) <span class="range-val" id="projScoreVal">5</span></label>
+          <input type="range" name="communication" class="form-range" min="0" max="10" step="0.5" value="5" oninput="document.getElementById('projScoreVal').textContent=this.value"/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label d-flex justify-content-between">Task Completion (0-20) <span class="range-val" id="taskVal">10</span></label>
+          <input type="range" name="tasks" class="form-range" min="0" max="20" step="1" value="10" oninput="document.getElementById('taskVal').textContent=this.value"/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Teamwork Score (0-100)</label>
+          <input type="text" class="form-control" placeholder="Enter teamwork score" disabled style="background:#f9fafb;color:#9ca3af"/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Punctuality (%)</label>
+          <input type="text" class="form-control" placeholder="Enter punctuality" disabled style="background:#f9fafb;color:#9ca3af"/>
+        </div>
+      </div>
+
+      <div class="mt-4 d-flex gap-2 justify-content-end">
+        <a href="/dashboard" class="btn btn-outline-secondary px-4">Reset</a>
+        <button type="submit" class="btn-predict"><i class="bi bi-magic me-1"></i>Save &amp; Predict</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

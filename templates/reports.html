@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block extra_css %}
+<style>
+:root{--red:#e94560;}
+body{background:#f0f2f5;}
+.sidebar{width:240px;min-height:100vh;background:linear-gradient(180deg,#1a1a2e,#16213e);position:fixed;top:0;left:0;z-index:100;display:flex;flex-direction:column;}
+.sidebar .brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sidebar .nav-link{color:rgba(255,255,255,.65);padding:10px 18px;border-radius:8px;margin:2px 10px;font-size:.88rem;display:flex;align-items:center;transition:all .18s;}
+.sidebar .nav-link:hover,.sidebar .nav-link.active{background:rgba(233,69,96,.18);color:var(--red);}
+.sidebar .nav-link i{width:20px;margin-right:10px;}
+.sidebar-bottom{padding:14px;margin-top:auto;}
+.topbar{background:white;border-radius:12px;padding:14px 22px;margin-bottom:22px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;}
+.main{margin-left:240px;padding:24px;}
+.card{background:white;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.08);border:none;}
+.badge-high{background:#d1fae5;color:#065f46;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600;}
+.badge-medium{background:#fef3c7;color:#92400e;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600;}
+.badge-low{background:#fee2e2;color:#991b1b;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600;}
+.stat-mini{background:white;border-radius:12px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+@media print{.sidebar,.topbar,.no-print{display:none!important}.main{margin-left:0!important}}
+</style>
+{% endblock %}
+{% block body %}
+<nav class="sidebar no-print">
+  <div class="brand d-flex align-items-center gap-2">
+    <div style="width:34px;height:34px;border-radius:8px;background:var(--red);display:flex;align-items:center;justify-content:center;"><i class="bi bi-people-fill text-white"></i></div>
+    <div class="text-white fw-bold" style="font-size:.95rem">IPS</div>
+  </div>
+  <ul class="nav flex-column mt-2">
+    <li><a class="nav-link" href="/dashboard"><i class="bi bi-house-fill"></i>Dashboard</a></li>
+    <li><a class="nav-link" href="/add_intern"><i class="bi bi-person-plus"></i>Add Intern</a></li>
+    <li><a class="nav-link" href="/manage_interns"><i class="bi bi-grid"></i>Manage Interns</a></li>
+    <li><a class="nav-link active" href="/reports"><i class="bi bi-bar-chart"></i>Reports</a></li>
+    <li><a class="nav-link" href="/hr_profile"><i class="bi bi-person-circle"></i>Profile</a></li>
+  </ul>
+  <div class="sidebar-bottom">
+    <a class="nav-link text-danger" href="/logout" style="margin:0"><i class="bi bi-box-arrow-right"></i>Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar no-print">
+    <h5 class="mb-0 fw-bold">Reports</h5>
+    <button onclick="window.print()" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer me-1"></i>Print</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="card p-4 mb-4 no-print">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label fw-semibold small">Select Department</label>
+        <select class="form-select form-select-sm"><option>All Department</option>{% set depts = interns|map(attribute='department')|unique|list %}{% for d in depts %}<option>{{ d }}</option>{% endfor %}</select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold small">Date From</label>
+        <input type="date" class="form-control form-control-sm" value="2024-01-05"/>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold small">Date To</label>
+        <input type="date" class="form-control form-control-sm" value="2024-05-31"/>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-danger btn-sm w-100">Generate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  {% set total = interns|length %}
+  {% set high = interns|selectattr('performance','equalto','High')|list|length %}
+  {% set medium = interns|selectattr('performance','equalto','Medium')|list|length %}
+  {% set low = interns|selectattr('performance','equalto','Low')|list|length %}
+  <div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-mini"><div class="text-muted small">Average Performance</div><div class="fw-bold fs-4">{% if total %}{{ ((high*100 + medium*60 + low*30)//total) }}%{% else %}0%{% endif %}</div></div></div>
+    <div class="col-md-3"><div class="stat-mini"><div class="text-muted small">Total Interns</div><div class="fw-bold fs-4 text-primary">{{ total }}</div></div></div>
+    <div class="col-md-3"><div class="stat-mini"><div class="text-muted small">Excellent</div><div class="fw-bold fs-4 text-success">{{ high }}</div></div></div>
+    <div class="col-md-3"><div class="stat-mini"><div class="text-muted small">Needs Improvement</div><div class="fw-bold fs-4 text-danger">{{ low }}</div></div></div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-7">
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3">Performance by Department</h6>
+        <canvas id="deptChart" height="140"></canvas>
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3">Performance Distribution</h6>
+        <div class="d-flex align-items-center gap-4">
+          <canvas id="distChart" width="140" height="140"></canvas>
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-2"><div style="width:12px;height:12px;border-radius:3px;background:#2563eb"></div><small>High &nbsp;<strong>{{ high }}</strong></small></div>
+            <div class="d-flex align-items-center gap-2 mb-2"><div style="width:12px;height:12px;border-radius:3px;background:#16a34a"></div><small>Medium &nbsp;<strong>{{ medium }}</strong></small></div>
+            <div class="d-flex align-items-center gap-2 mb-2"><div style="width:12px;height:12px;border-radius:3px;background:#f59e0b"></div><small>Low &nbsp;<strong>{{ low }}</strong></small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="d-flex align-items-center justify-content-between px-4 pt-4 pb-3">
+      <h6 class="fw-bold mb-0">Recent Reports</h6>
+    </div>
+    <div class="table-responsive px-3 pb-4">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light"><tr><th>Report Name</th><th>Generated On</th><th>Generated By</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>Monthly Performance Report</td><td class="text-muted">20 May 2024</td><td class="text-muted">HR Admin</td><td><button class="btn btn-sm btn-primary px-3" onclick="window.print()">Download</button></td></tr>
+          <tr><td>All Interns Report</td><td class="text-muted">19 May 2024</td><td class="text-muted">HR Admin</td><td><button class="btn btn-sm btn-primary px-3" onclick="window.print()">Download</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Dept bar chart
+const depts = {{ interns|map(attribute='department')|list|tojson }};
+const perfs = {{ interns|map(attribute='performance')|list|tojson }};
+const deptMap = {};
+depts.forEach((d,i)=>{if(!deptMap[d])deptMap[d]={h:0,m:0,l:0};deptMap[d][perfs[i][0].toLowerCase()]++;});
+const labels = Object.keys(deptMap);
+new Chart(document.getElementById('deptChart'),{
+  type:'bar',
+  data:{labels,datasets:[
+    {label:'High',data:labels.map(d=>deptMap[d].h),backgroundColor:'#2563eb',borderRadius:4},
+    {label:'Medium',data:labels.map(d=>deptMap[d].m),backgroundColor:'#f59e0b',borderRadius:4},
+    {label:'Low',data:labels.map(d=>deptMap[d].l),backgroundColor:'#ef4444',borderRadius:4}
+  ]},
+  options:{plugins:{legend:{position:'bottom'}},scales:{x:{stacked:false,grid:{display:false}},y:{grid:{color:'#f3f4f6'},beginAtZero:true}}}
+});
+new Chart(document.getElementById('distChart'),{
+  type:'doughnut',
+  data:{datasets:[{data:[{{ high }}||1,{{ medium }}||1,{{ low }}||1],backgroundColor:['#2563eb','#16a34a','#f59e0b'],borderWidth:2,borderColor:'#fff'}]},
+  options:{cutout:'60%',plugins:{legend:{display:false}}}
+});
+</script>
+{% endblock %}

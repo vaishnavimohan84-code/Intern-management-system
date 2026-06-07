@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Intern Login{% endblock %}
+{% block extra_css %}
+<style>
+  body { background: linear-gradient(135deg, #e8edff 0%, #f0f4ff 60%, #ede9fe 100%); min-height: 100vh; }
+  .login-card { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.12); width: 100%; max-width: 400px; overflow: hidden; }
+  .login-header { background: white; padding: 36px 32px 28px; text-align: center; }
+  .logo-circle { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg,#7c3aed,#6d28d9); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 2rem; color: white; }
+  .login-body { padding: 0 32px 28px; }
+  .form-label { font-weight: 600; font-size: .85rem; color: #374151; margin-bottom: 6px; }
+  .form-control { border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 10px 14px; font-size: .9rem; transition: all .2s; }
+  .form-control:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12); outline: none; }
+  .input-group-text { background: #f9fafb; border: 1.5px solid #e5e7eb; border-right: none; border-radius: 10px 0 0 10px; color: #9ca3af; }
+  .input-group .form-control { border-left: none; border-radius: 0 10px 10px 0; }
+  .input-group .btn-outline-secondary { border: 1.5px solid #e5e7eb; border-left: none; border-radius: 0 10px 10px 0; color: #9ca3af; }
+  .btn-login { background: linear-gradient(135deg,#7c3aed,#6d28d9); border: none; color: white; font-weight: 700; padding: 12px; border-radius: 10px; font-size: .95rem; width: 100%; transition: all .2s; }
+  .btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(124,58,237,.35); color: white; }
+</style>
+{% endblock %}
+{% block body %}
+<div style="width:100%;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-circle"><i class="bi bi-mortarboard-fill"></i></div>
+      <h4 class="fw-bold mb-1" style="color:#0f172a">Intern Portal</h4>
+      <div class="text-muted" style="font-size:.88rem">Welcome Back!</div>
+      <div class="text-muted" style="font-size:.82rem">Login to your account</div>
+    </div>
+    <div class="login-body">
+      {% with msgs = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in msgs %}
+          <div class="alert alert-{{ cat }} alert-dismissible fade show py-2 mb-3" role="alert" style="font-size:.85rem;border-radius:10px">
+            {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endwith %}
+      <form method="POST" action="/intern_login_post">
+        <div class="mb-4">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" placeholder="Enter your username" required autofocus/>
+        </div>
+        <div class="mb-5">
+          <label class="form-label">Password</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" name="password" id="intPw" class="form-control" placeholder="Enter your password" required/>
+            <button class="btn btn-outline-secondary" type="button" onclick="togglePw()"><i class="bi bi-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn-login">Login</button>
+      </form>
+      <div class="text-center mt-3">
+        <a href="#" style="color:#7c3aed;font-size:.88rem;text-decoration:none">Forgot password?</a>
+      </div>
+      <div class="text-center mt-3 pt-3" style="border-top:1px solid #f3f4f6">
+        <div style="font-size:.82rem;color:#9ca3af">Are you HR staff? <a href="/" style="color:#e94560;text-decoration:none;font-weight:600">HR Login</a></div>
+      </div>
+      <div class="text-center mt-4" style="font-size:.75rem;color:#d1d5db"> Intern Portal. All rights reserved.</div>
+    </div>
+  </div>
+</div>
+<script>
+function togglePw() {
+  const f = document.getElementById('intPw');
+  const btn = f.nextElementSibling;
+  const show = f.type === 'password';
+  f.type = show ? 'text' : 'password';
+  btn.innerHTML = show ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+}
+</script>
+{% endblock %}

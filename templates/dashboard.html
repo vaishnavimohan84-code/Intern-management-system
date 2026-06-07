@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}HR Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+:root{--red:#e94560;--sidebar:#1a1a2e;--sidebar2:#16213e;}
+body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;}
+.sidebar{width:240px;min-height:100vh;background:linear-gradient(180deg,var(--sidebar),var(--sidebar2));position:fixed;top:0;left:0;z-index:100;display:flex;flex-direction:column;}
+.sidebar .brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sidebar .nav-link{color:rgba(255,255,255,.65);padding:10px 18px;border-radius:8px;margin:2px 10px;font-size:.88rem;display:flex;align-items:center;transition:all .18s;}
+.sidebar .nav-link:hover,.sidebar .nav-link.active{background:rgba(233,69,96,.18);color:var(--red);}
+.sidebar .nav-link i{width:20px;margin-right:10px;}
+.sidebar-bottom{padding:14px;margin-top:auto;}
+.topbar{background:white;border-radius:12px;padding:14px 22px;margin-bottom:22px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;}
+.main{margin-left:240px;padding:24px;}
+.stat-card{background:white;border-radius:12px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.07);}
+.stat-icon{width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+.table-card{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);}
+.badge-high{background:#d1fae5;color:#065f46;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600;}
+.badge-medium{background:#fef3c7;color:#92400e;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600;}
+.badge-low{background:#fee2e2;color:#991b1b;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600;}
+</style>
+{% endblock %}
+{% block body %}
+<nav class="sidebar">
+  <div class="brand d-flex align-items-center gap-2">
+    <div style="width:34px;height:34px;border-radius:8px;background:var(--red);display:flex;align-items:center;justify-content:center;"><i class="bi bi-people-fill text-white"></i></div>
+    <div><div class="text-white fw-bold" style="font-size:.95rem">IPS</div></div>
+  </div>
+  <ul class="nav flex-column mt-2">
+    <li><a class="nav-link active" href="/dashboard"><i class="bi bi-house-fill"></i>Dashboard</a></li>
+    <li><a class="nav-link" href="/add_intern"><i class="bi bi-person-plus"></i>Add Intern</a></li>
+    <li><a class="nav-link" href="/manage_interns"><i class="bi bi-grid"></i>Manage Interns</a></li>
+    <li><a class="nav-link" href="/reports"><i class="bi bi-bar-chart"></i>Reports</a></li>
+    <li><a class="nav-link" href="/hr_profile"><i class="bi bi-person-circle"></i>Profile</a></li>
+  </ul>
+  <div class="sidebar-bottom">
+    <a class="nav-link text-danger" href="/logout" style="margin:0"><i class="bi bi-box-arrow-right"></i>Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <h5 class="mb-0 fw-bold">Dashboard</h5>
+    <div class="d-flex align-items-center gap-2">
+      <div style="width:34px;height:34px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:1.1rem;"><i class="bi bi-person"></i></div>
+      <span class="fw-semibold text-muted small">HR Admin</span>
+      <i class="bi bi-chevron-down text-muted small"></i>
+    </div>
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- Stats Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="stat-card d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#eff6ff;color:#2563eb"><i class="bi bi-people"></i></div>
+        <div><div class="text-muted small">Total Interns</div><div class="fs-4 fw-bold">{{ total }}</div></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#f0fdf4;color:#16a34a"><i class="bi bi-graph-up-arrow"></i></div>
+        <div><div class="text-muted small">Average Attendance</div><div class="fs-4 fw-bold">
+          {% if interns %}{{ (interns | map(attribute='attendance') | sum / total) | round(0) | int }}%{% else %}0%{% endif %}
+        </div></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#fffbeb;color:#d97706"><i class="bi bi-star"></i></div>
+        <div><div class="text-muted small">Top Performers</div><div class="fs-4 fw-bold">{{ high }}</div></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#fef3c7;color:#d97706"><i class="bi bi-bar-chart"></i></div>
+        <div><div class="text-muted small">Predictions Done</div><div class="fs-4 fw-bold">{{ total }}</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-7">
+      <div class="table-card p-4">
+        <h6 class="fw-bold mb-3">Performance Overview</h6>
+        <canvas id="perfChart" height="120"></canvas>
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="table-card p-4">
+        <h6 class="fw-bold mb-3">Performance Distribution</h6>
+        <div class="d-flex align-items-center gap-3">
+          <canvas id="pieChart" width="130" height="130"></canvas>
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-2"><div style="width:12px;height:12px;border-radius:3px;background:#2563eb"></div><small>High &nbsp;<strong>{{ high }}</strong></small></div>
+            <div class="d-flex align-items-center gap-2 mb-2"><div style="width:12px;height:12px;border-radius:3px;background:#16a34a"></div><small>Medium &nbsp;<strong>{{ medium }}</strong></small></div>
+            <div class="d-flex align-items-center gap-2 mb-2"><div style="width:12px;height:12px;border-radius:3px;background:#f59e0b"></div><small>Low &nbsp;<strong>{{ low }}</strong></small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Interns Table -->
+  <div class="table-card">
+    <div class="d-flex align-items-center justify-content-between px-4 pt-4 pb-3">
+      <h6 class="fw-bold mb-0">Recent Interns</h6>
+      <a href="/add_intern" class="btn btn-sm btn-danger px-3"><i class="bi bi-plus-lg me-1"></i>Add New</a>
+    </div>
+    <div class="table-responsive px-2 pb-3">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr><th>Intern Name</th><th>Department</th><th>Attendance</th><th>Performance</th><th>Updated On</th></tr>
+        </thead>
+        <tbody>
+          {% for i in interns[:5] %}
+          <tr>
+            <td class="fw-semibold">{{ i.name }}</td>
+            <td>{{ i.department }}</td>
+            <td>{{ i.attendance }}%</td>
+            <td><span class="badge-{{ i.performance|lower }}">{{ i.performance }}</span></td>
+            <td class="text-muted small">{{ '20 May 2024' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted py-4">No interns added yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Line chart
+new Chart(document.getElementById('perfChart'), {
+  type: 'line',
+  data: {
+    labels: ['Jan','Feb','Mar','Apr','May','Jun'],
+    datasets: [{
+      label: 'Performance',
+      data: [55,60,65,70,72,75],
+      borderColor: '#2563eb',
+      backgroundColor: 'rgba(37,99,235,.08)',
+      borderWidth: 2.5,
+      pointBackgroundColor: '#2563eb',
+      pointRadius: 4,
+      tension: .35,
+      fill: true
+    }]
+  },
+  options: { plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } } }
+});
+// Pie chart
+const h = {{ high }}, m = {{ medium }}, l = {{ low }};
+new Chart(document.getElementById('pieChart'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [h || 1, m || 1, l || 1],
+      backgroundColor: ['#2563eb','#16a34a','#f59e0b'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: { plugins: { legend: { display: false } }, cutout: '60%' }
+});
+</script>
+{% endblock %}

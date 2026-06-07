@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Intern Dashboard{% endblock %}
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--purple:#7c3aed;--purple2:#6d28d9;--sidebar-bg:#1e1b4b;}
+body{background:#f0f2f5;font-family:'Inter',sans-serif;}
+.sidebar{width:240px;min-height:100vh;background:linear-gradient(180deg,var(--sidebar-bg),#312e81);position:fixed;top:0;left:0;z-index:100;display:flex;flex-direction:column;}
+.sidebar .brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sidebar .nav-link{color:rgba(255,255,255,.65);padding:10px 18px;border-radius:8px;margin:2px 10px;font-size:.88rem;display:flex;align-items:center;transition:all .18s;}
+.sidebar .nav-link:hover,.sidebar .nav-link.active{background:rgba(124,58,237,.28);color:#c4b5fd;}
+.sidebar .nav-link i{width:22px;margin-right:10px;}
+.sidebar-bottom{padding:14px;margin-top:auto;}
+.topbar{background:white;border-radius:12px;padding:14px 22px;margin-bottom:22px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;}
+.main{margin-left:240px;padding:24px;}
+.welcome-card{background:linear-gradient(135deg,#1e1b4b,#4c1d95);border-radius:14px;padding:28px;color:white;margin-bottom:22px;}
+.stat-card{background:white;border-radius:12px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.07);}
+.stat-icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+.card{background:white;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.07);border:none;}
+.badge-high{background:#d1fae5;color:#065f46;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600;}
+.badge-medium{background:#fef3c7;color:#92400e;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600;}
+.badge-low{background:#fee2e2;color:#991b1b;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600;}
+.perf-result{background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-radius:12px;padding:18px;border-left:4px solid #16a34a;}
+.score-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f9fafb;}
+.score-row:last-child{border-bottom:none;}
+.mini-bar{width:80px;height:6px;background:#f3f4f6;border-radius:3px;overflow:hidden;display:inline-block;margin-left:8px;}
+.mini-bar-fill{height:100%;border-radius:3px;background:var(--purple);}
+</style>
+{% endblock %}
+{% block body %}
+<nav class="sidebar">
+  <div class="brand d-flex align-items-center gap-2">
+    <div style="width:34px;height:34px;border-radius:8px;background:var(--purple);display:flex;align-items:center;justify-content:center;"><i class="bi bi-mortarboard-fill text-white"></i></div>
+    <div class="text-white fw-bold" style="font-size:.95rem">Intern Portal</div>
+  </div>
+  <ul class="nav flex-column mt-2">
+    <li><a class="nav-link active" href="/intern_dashboard"><i class="bi bi-house-fill"></i>Dashboard</a></li>
+    <li><a class="nav-link" href="/intern_overview"><i class="bi bi-person-lines-fill"></i>My Performance</a></li>
+    <li><a class="nav-link" href="/intern_report"><i class="bi bi-lightbulb"></i>AI Suggestions &amp; Reports</a></li>
+    <li><a class="nav-link" href="/intern_profile"><i class="bi bi-person-circle"></i>Profile</a></li>
+    <li><a class="nav-link" href="/change_intern_password"><i class="bi bi-key-fill"></i>Change Password</a></li>
+  </ul>
+  <div class="sidebar-bottom">
+    <a class="nav-link" href="/logout" style="margin:0;color:rgba(255,255,255,.5)"><i class="bi bi-box-arrow-right"></i>Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+  {% set i = current_intern %}
+  <div class="topbar">
+    <div>
+      <div class="fw-semibold small text-muted">🔔</div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <div style="width:34px;height:34px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;">{{ i.name[:2]|upper if i else 'IN' }}</div>
+      <div>
+        <div class="fw-semibold small">{{ i.name if i else intern_name }}</div>
+        <div class="text-muted" style="font-size:.75rem">Intern</div>
+      </div>
+    </div>
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if i %}
+  <!-- Welcome -->
+  <div class="welcome-card mb-4">
+    <h4 class="fw-bold mb-1">Hello, {{ i.name }} 👋</h4>
+    <div class="text-white-50">Welcome back to your dashboard!</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="stat-card d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#eff6ff;color:#2563eb"><i class="bi bi-calendar-check"></i></div>
+        <div><div class="text-muted small">Attendance</div><div class="fs-4 fw-bold">{{ i.attendance }}%</div><div class="text-success" style="font-size:.75rem">Good</div></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#f0fdf4;color:#16a34a"><i class="bi bi-graph-up"></i></div>
+        <div><div class="text-muted small">Overall Score</div><div class="fs-4 fw-bold">{{ ((i.attendance + i.project + i.communication*10)/3)|round|int }}%</div><div class="text-success" style="font-size:.75rem">Good</div></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#fffbeb;color:#d97706"><i class="bi bi-star"></i></div>
+        <div><div class="text-muted small">Performance</div><div class="fs-4 fw-bold">{{ i.performance }}</div><div class="text-muted" style="font-size:.75rem">Current Level</div></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background:#fef3c7;color:#d97706"><i class="bi bi-trophy"></i></div>
+        <div><div class="text-muted small">Rank</div><div class="fs-4 fw-bold">#{{ loop.index if loop else '—' }}</div><div class="text-muted" style="font-size:.75rem">Out of {{ interns|length }} Interns</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Performance Overview Chart -->
+    <div class="col-md-7">
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3">Performance Overview</h6>
+        <canvas id="perfChart" height="130"></canvas>
+      </div>
+    </div>
+    <!-- Prediction Result -->
+    <div class="col-md-5">
+      <div class="card p-4 mb-3">
+        <h6 class="fw-bold mb-3">Prediction Result</h6>
+        <div class="perf-result">
+          <div class="fw-bold text-success fs-6 mb-1">{{ i.performance }} Performer</div>
+          <div class="text-muted small">You are performing well. Keep up the good work!</div>
+          <i class="bi bi-graph-up-arrow text-success mt-2" style="font-size:1.4rem"></i>
+        </div>
+      </div>
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3">Recent Updates</h6>
+        <div class="d-flex align-items-center gap-3 mb-3 p-2 rounded" style="background:#f9fafb">
+          <div style="width:36px;height:36px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center"><i class="bi bi-graph-up text-primary"></i></div>
+          <div><div class="fw-semibold small">Your performance was updated</div><div class="text-muted" style="font-size:.75rem">2 days ago</div></div>
+        </div>
+        <div class="d-flex align-items-center gap-3 mb-3 p-2 rounded" style="background:#f9fafb">
+          <div style="width:36px;height:36px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center"><i class="bi bi-lightbulb text-success"></i></div>
+          <div><div class="fw-semibold small">New suggestion available</div><div class="text-muted" style="font-size:.75rem">3 days ago</div></div>
+        </div>
+        <div class="d-flex align-items-center gap-3 p-2 rounded" style="background:#f9fafb">
+          <div style="width:36px;height:36px;border-radius:50%;background:#fffbeb;display:flex;align-items:center;justify-content:center"><i class="bi bi-file-text text-warning"></i></div>
+          <div><div class="fw-semibold small">Monthly report is ready</div><div class="text-muted" style="font-size:.75rem">5 days ago</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center py-5"><div class="text-muted">No intern data found. Please contact HR.</div></div>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('perfChart'), {
+  type: 'line',
+  data: {
+    labels: ['Jan','Feb','Mar','Apr','May','Jun'],
+    datasets: [{
+      data: [50,55,62,58,70,75],
+      borderColor: '#7c3aed',
+      backgroundColor: 'rgba(124,58,237,.08)',
+      borderWidth: 2.5,
+      pointBackgroundColor: '#7c3aed',
+      pointRadius: 4,
+      tension: .35,
+      fill: true
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { min: 0, max: 100, grid: { color: '#f3f4f6' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+{% endblock %}

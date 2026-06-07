@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}HR Login{% endblock %}
+{% block extra_css %}
+<style>
+  body { background: linear-gradient(135deg, #e8f0fe 0%, #f0f4ff 60%, #e8edff 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .login-card { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.12); width: 100%; max-width: 400px; overflow: hidden; }
+  .login-header { background: #1a1a2e; padding: 36px 32px 28px; text-align: center; }
+  .logo-circle { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg,#e94560,#c73652); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 2rem; color: white; }
+  .login-body { padding: 32px; }
+  .form-label { font-weight: 600; font-size: .85rem; color: #374151; margin-bottom: 6px; }
+  .form-control { border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 10px 14px; font-size: .9rem; transition: all .2s; }
+  .form-control:focus { border-color: #e94560; box-shadow: 0 0 0 3px rgba(233,69,96,.12); outline: none; }
+  .input-group-text { background: #f9fafb; border: 1.5px solid #e5e7eb; border-right: none; border-radius: 10px 0 0 10px; color: #9ca3af; }
+  .input-group .form-control { border-left: none; border-radius: 0 10px 10px 0; }
+  .input-group .btn-outline-secondary { border: 1.5px solid #e5e7eb; border-left: none; border-radius: 0 10px 10px 0; color: #9ca3af; }
+  .btn-login { background: linear-gradient(135deg,#e94560,#c73652); border: none; color: white; font-weight: 700; padding: 12px; border-radius: 10px; font-size: .95rem; width: 100%; transition: all .2s; }
+  .btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(233,69,96,.35); color: white; }
+  .login-footer { text-align: center; padding: 0 32px 28px; }
+  .intern-link { color: #9ca3af; font-size: .88rem; }
+  .intern-link a { color: #e94560; text-decoration: none; font-weight: 600; }
+</style>
+{% endblock %}
+{% block body %}
+<div style="width:100%;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-circle"><i class="bi bi-people-fill"></i></div>
+      <h4 class="text-white fw-bold mb-1">Intern Performance</h4>
+      <h4 class="text-white fw-bold mb-1">Prediction System</h4>
+      <div class="text-white-50" style="font-size:.85rem">HR Login</div>
+    </div>
+    <div class="login-body">
+      {% with msgs = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in msgs %}
+          <div class="alert alert-{{ cat }} alert-dismissible fade show py-2 mb-3" role="alert" style="font-size:.85rem;border-radius:10px">
+            {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endwith %}
+      <form method="POST" action="/hr_login">
+        <div class="mb-4">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" placeholder="Enter username" required autofocus/>
+        </div>
+        <div class="mb-4">
+          <label class="form-label">Password</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" name="password" id="hrPw" class="form-control" placeholder="Enter password" required/>
+            <button class="btn btn-outline-secondary" type="button" onclick="togglePw('hrPw',this)"><i class="bi bi-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn-login">Login</button>
+      </form>
+    </div>
+    <div class="login-footer">
+      <a href="#" class="text-danger" style="font-size:.88rem;text-decoration:none">Forgot password?</a>
+      <div class="mt-4 pt-3" style="border-top:1px solid #f3f4f6">
+        <div class="intern-link">Are you an intern? <a href="/intern_login">Login here</a></div>
+      </div>
+      <div class="mt-4 text-muted" style="font-size:.75rem">Intern System</div>
+    </div>
+  </div>
+</div>
+<script>
+function togglePw(id, btn) {
+  const f = document.getElementById(id);
+  const show = f.type === 'password';
+  f.type = show ? 'text' : 'password';
+  btn.innerHTML = show ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+}
+</script>
+{% endblock %}

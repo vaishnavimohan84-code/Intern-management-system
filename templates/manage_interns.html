@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Manage Interns{% endblock %}
+{% block extra_css %}
+<style>
+:root{--red:#e94560;}
+body{background:#f0f2f5;}
+.sidebar{width:240px;min-height:100vh;background:linear-gradient(180deg,#1a1a2e,#16213e);position:fixed;top:0;left:0;z-index:100;display:flex;flex-direction:column;}
+.sidebar .brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sidebar .nav-link{color:rgba(255,255,255,.65);padding:10px 18px;border-radius:8px;margin:2px 10px;font-size:.88rem;display:flex;align-items:center;transition:all .18s;}
+.sidebar .nav-link:hover,.sidebar .nav-link.active{background:rgba(233,69,96,.18);color:var(--red);}
+.sidebar .nav-link i{width:20px;margin-right:10px;}
+.sidebar-bottom{padding:14px;margin-top:auto;}
+.topbar{background:white;border-radius:12px;padding:14px 22px;margin-bottom:22px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;}
+.main{margin-left:240px;padding:24px;}
+.table-card{background:white;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.08);}
+.search-input{border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 14px 8px 36px;font-size:.88rem;width:220px;outline:none;transition:all .18s;}
+.search-input:focus{border-color:var(--red);}
+.search-wrap{position:relative;}
+.search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ca3af;}
+.badge-high{background:#d1fae5;color:#065f46;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600;}
+.badge-medium{background:#fef3c7;color:#92400e;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600;}
+.badge-low{background:#fee2e2;color:#991b1b;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600;}
+.page-link{color:var(--red);}
+.page-item.active .page-link{background:var(--red);border-color:var(--red);color:white;}
+</style>
+{% endblock %}
+{% block body %}
+<nav class="sidebar">
+  <div class="brand d-flex align-items-center gap-2">
+    <div style="width:34px;height:34px;border-radius:8px;background:var(--red);display:flex;align-items:center;justify-content:center;"><i class="bi bi-people-fill text-white"></i></div>
+    <div class="text-white fw-bold" style="font-size:.95rem">IPS</div>
+  </div>
+  <ul class="nav flex-column mt-2">
+    <li><a class="nav-link" href="/dashboard"><i class="bi bi-house-fill"></i>Dashboard</a></li>
+    <li><a class="nav-link" href="/add_intern"><i class="bi bi-person-plus"></i>Add Intern</a></li>
+    <li><a class="nav-link active" href="/manage_interns"><i class="bi bi-grid"></i>Manage Interns</a></li>
+    <li><a class="nav-link" href="/reports"><i class="bi bi-bar-chart"></i>Reports</a></li>
+    <li><a class="nav-link" href="/hr_profile"><i class="bi bi-person-circle"></i>Profile</a></li>
+  </ul>
+  <div class="sidebar-bottom">
+    <a class="nav-link text-danger" href="/logout" style="margin:0"><i class="bi bi-box-arrow-right"></i>Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <h5 class="mb-0 fw-bold">Manage Interns</h5>
+    <a href="/add_intern" class="btn btn-sm btn-danger px-3"><i class="bi bi-plus-lg me-1"></i>Add New</a>
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="table-card">
+    <div class="d-flex align-items-center justify-content-between px-4 pt-4 pb-3">
+      <h6 class="fw-bold mb-0">Manage Interns</h6>
+      <div class="search-wrap">
+        <i class="bi bi-search"></i>
+        <input type="text" class="search-input" placeholder="Search intern..." id="searchInput" oninput="filterTable()"/>
+      </div>
+    </div>
+    <div class="table-responsive px-3 pb-4">
+      <table class="table table-hover align-middle mb-0" id="internsTable">
+        <thead class="table-light">
+          <tr><th>#</th><th>Name</th><th>Department</th><th>Domain</th><th>Email</th><th>Performance</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {% for i in interns %}
+          <tr>
+            <td class="text-muted">{{ loop.index }}</td>
+            <td class="fw-semibold">{{ i.name }}</td>
+            <td>{{ i.department }}</td>
+            <td>
+              {% if i.domain %}
+                {{ i.domain }}
+              {% elif 'MCA' in i.department %}
+                MCA
+              {% elif 'CSE' in i.department or 'Computer Science' in i.department %}
+                CSE
+              {% elif 'Data Science' in i.department %}
+                Data Science
+              {% elif 'AI' in i.department or 'Machine Learning' in i.department %}
+                AI & ML
+              {% elif 'IT' in i.department or 'Information Technology' in i.department %}
+                IT
+              {% elif 'BCA' in i.department %}
+                BCA
+              {% else %}
+                {{ i.department.split('(')[0].strip() }}
+              {% endif %}
+            </td>
+            <td class="text-muted">
+              {% if i.email %}
+                {{ i.email.split('@')[0] }}@gmail.com
+              {% else %}
+                {{ i.name|lower|replace(' ','') }}@gmail.com
+              {% endif %}
+            </td>
+            <td><span class="badge-{{ i.performance|lower }}">{{ i.performance }}</span></td>
+            <td>
+              <a href="/edit_intern/{{ i.id }}" class="btn btn-sm btn-outline-secondary me-1" title="Edit"><i class="bi bi-pencil"></i></a>
+              <a href="/delete_intern/{{ i.id }}" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Delete {{ i.name }}?')"><i class="bi bi-trash"></i></a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted py-5">No interns added yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if interns %}
+    <div class="px-4 pb-4 d-flex align-items-center justify-content-between">
+      <small class="text-muted">Showing 1 to {{ interns|length }} of {{ interns|length }} entries</small>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#internsTable tbody tr').forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

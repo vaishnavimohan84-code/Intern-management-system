@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--purple:#7c3aed;}
+body{background:#f0f2f5;font-family:'Inter',sans-serif;}
+.sidebar{width:240px;min-height:100vh;background:linear-gradient(180deg,#1e1b4b,#312e81);position:fixed;top:0;left:0;z-index:100;display:flex;flex-direction:column;}
+.sidebar .brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sidebar .nav-link{color:rgba(255,255,255,.65);padding:10px 18px;border-radius:8px;margin:2px 10px;font-size:.88rem;display:flex;align-items:center;transition:all .18s;text-decoration:none;}
+.sidebar .nav-link:hover,.sidebar .nav-link.active{background:rgba(124,58,237,.28);color:#c4b5fd;}
+.sidebar .nav-link i{width:22px;margin-right:10px;}
+.sidebar-bottom{padding:14px;margin-top:auto;}
+.main{margin-left:240px;padding:24px;}
+.topbar{background:white;border-radius:12px;padding:14px 22px;margin-bottom:22px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.card{background:white;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.07);border:none;}
+.form-control,.form-select{border:1.5px solid #e5e7eb;border-radius:8px;font-size:.88rem;}
+.form-control:focus,.form-select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(124,58,237,.1);outline:none;}
+.form-label{font-weight:600;font-size:.83rem;color:#374151;margin-bottom:5px;}
+.badge-dept{background:#dbeafe;color:#1e40af;border-radius:20px;padding:2px 12px;font-size:.78rem;font-weight:600;}
+.btn-update{background:linear-gradient(135deg,var(--purple),#6d28d9);border:none;color:white;font-weight:700;padding:10px 24px;border-radius:9px;font-size:.9rem;transition:all .2s;cursor:pointer;}
+.btn-update:hover{transform:translateY(-1px);color:white;}
+
+/* Photo upload */
+.avatar-wrap{position:relative;width:100px;height:100px;margin:0 auto 16px;}
+.avatar-img{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #e5e7eb;}
+.avatar-placeholder{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--purple),#818cf8);display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:white;font-weight:700;border:3px solid #e5e7eb;}
+.avatar-edit-btn{position:absolute;bottom:2px;right:2px;width:30px;height:30px;border-radius:50%;background:var(--purple);border:2px solid white;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s;}
+.avatar-edit-btn:hover{transform:scale(1.1);}
+.avatar-edit-btn i{font-size:.7rem;color:white;}
+#photoInput{display:none;}
+</style>
+{% endblock %}
+
+{% block body %}
+<nav class="sidebar">
+  <div class="brand d-flex align-items-center gap-2">
+    <div style="width:34px;height:34px;border-radius:8px;background:var(--purple);display:flex;align-items:center;justify-content:center;"><i class="bi bi-mortarboard-fill text-white"></i></div>
+    <div class="text-white fw-bold" style="font-size:.95rem">Intern Portal</div>
+  </div>
+  <ul class="nav flex-column mt-2">
+    <li><a class="nav-link" href="/intern_dashboard"><i class="bi bi-house-fill"></i>Dashboard</a></li>
+    <li><a class="nav-link" href="/intern_overview"><i class="bi bi-grid-1x2-fill"></i>Overview</a></li>
+    <li><a class="nav-link" href="/intern_report"><i class="bi bi-lightbulb-fill"></i>AI Suggestions &amp; Reports</a></li>
+    <li><a class="nav-link active" href="/intern_profile"><i class="bi bi-person-circle"></i>Profile</a></li>
+  </ul>
+  <div class="sidebar-bottom">
+    <a class="nav-link" href="/logout" style="margin:0;color:rgba(255,255,255,.5)"><i class="bi bi-box-arrow-right"></i>Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar d-flex align-items-center justify-content-between">
+    <div>
+      <h5 class="mb-0 fw-bold">My Profile</h5>
+      <div class="text-muted small">View and update your profile information</div>
+    </div>
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="row g-4">
+    <!-- Left Card -->
+    <div class="col-md-4">
+      <div class="card p-4 text-center mb-4">
+
+        <!-- Photo preview -->
+        <div class="avatar-wrap">
+          {% if intern.photo %}
+            <img id="avatarPreview" class="avatar-img" src="/static/uploads/{{ intern.photo }}" alt="Profile Photo"/>
+          {% else %}
+            <div class="avatar-placeholder" id="avatarPlaceholder">{{ (intern.name or 'I')[0].upper() }}</div>
+            <img id="avatarPreview" class="avatar-img d-none" src="" alt="Profile Photo"/>
+          {% endif %}
+          <label for="photoInput" class="avatar-edit-btn" title="Change photo">
+            <i class="bi bi-camera-fill"></i>
+          </label>
+        </div>
+
+        <div class="fw-bold fs-5">{{ intern.name }}</div>
+        <div class="text-muted small mb-2">{{ intern.email or '' }}</div>
+        <span class="badge-dept">{{ intern.department }}</span>
+        {% if intern.phone %}
+        <div class="mt-2 text-muted small"><i class="bi bi-telephone me-1"></i>{{ intern.phone }}</div>
+        {% endif %}
+        {% if intern.location %}
+        <div class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ intern.location }}</div>
+        {% endif %}
+        {% if intern.skills %}
+        <div class="mt-3 d-flex flex-wrap gap-1 justify-content-center">
+          {% for skill in intern.skills.split(',') %}
+            <span style="background:#ede9fe;color:#5b21b6;border-radius:12px;padding:2px 9px;font-size:.72rem;font-weight:600;">{{ skill.strip() }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right: Edit Form -->
+    <div class="col-md-8">
+      <div class="card p-4 mb-4">
+        <h6 class="fw-bold mb-4"><i class="bi bi-pencil-square me-2" style="color:var(--purple);"></i>Personal Information</h6>
+        <form method="POST" action="/intern_profile_update" enctype="multipart/form-data">
+          <!-- Hidden photo input -->
+          <input type="file" id="photoInput" name="photo" accept="image/*" onchange="previewPhoto(this)"/>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Full Name</label>
+              <input type="text" name="name" class="form-control" value="{{ intern.name }}" required/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" value="{{ intern.email or '' }}" placeholder="you@example.com"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Department</label>
+              <select name="department" class="form-select" required>
+                {% set departments = [
+                  'Computer Science and Engineering (CSE)',
+                  'Artificial Intelligence and Machine Learning (AI & ML)',
+                  'Data Science',
+                  'Information Technology (IT)',
+                  'Computer Applications (BCA)',
+                  'Master of Computer Applications (MCA)',
+                  'Statistics',
+                  'Mathematics',
+                  'Data Analytics',
+                  'Business Analytics',
+                  'Educational Technology',
+                  'Education Department',
+                  'Psychology',
+                  'Sociology',
+                  'Economics',
+                  'Management Studies',
+                  'Commerce',
+                  'Operations Research',
+                  'Artificial Intelligence',
+                  'Software Engineering',
+                  'Information Systems',
+                  'Computational Science',
+                  'Digital Learning and Analytics',
+                  'Educational Data Mining',
+                  'Learning Sciences',
+                  'Predictive Analytics',
+                  'Full Stack Development',
+                  'Cybersecurity',
+                  'Cloud Computing',
+                  'UI/UX Design',
+                  'DevOps',
+                  'Mobile Development',
+                  'Backend Development',
+                  'Frontend Development',
+                  'Machine Learning',
+                  'Blockchain',
+                  'IoT',
+                  'Game Development',
+                  'Quality Assurance',
+                  'Digital Marketing',
+                  'Product Management',
+                  'Network Engineering',
+                  'Database Administration'
+                ] %}
+                {% for dept in departments %}
+                <option {% if intern.department == dept %}selected{% endif %}>{{ dept }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Domain</label>
+              <select name="domain" class="form-select">
+                {% set domains = [
+                  'Full Stack','AI & ML','Data Analytics','Machine Learning',
+                  'Finance','AWS DevOps','Cybersecurity','UI/UX Design',
+                  'Cloud Computing','Mobile Development','Python Development',
+                  'Data Science','Web Development','Backend Development',
+                  'Frontend Development','Software Engineering','Artificial Intelligence',
+                  'Business Analytics','Predictive Analytics','Digital Marketing',
+                  'Product Management','Network Engineering','Database Administration',
+                  'IoT','Blockchain','Game Development','Quality Assurance',
+                  'DevOps','Information Systems'
+                ] %}
+                {% for dom in domains %}
+                <option {% if intern.domain == dom %}selected{% endif %}>{{ dom }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Phone</label>
+              <input type="tel" name="phone" class="form-control" value="{{ intern.phone or '' }}" placeholder="+91 98765 43210"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Gender</label>
+              <select name="gender" class="form-select">
+                <option value="">Select</option>
+                {% for g in ['Male','Female','Non-binary','Prefer not to say'] %}
+                <option {% if intern.gender == g %}selected{% endif %}>{{ g }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Location</label>
+              <input type="text" name="location" class="form-control" value="{{ intern.location or '' }}" placeholder="City, State"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Position / Role</label>
+              <input type="text" name="position" class="form-control" value="{{ intern.position or '' }}" placeholder="e.g. ML Intern"/>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Start Date</label>
+              <input type="date" name="start_date" id="startDateInput" class="form-control" value="" placeholder=""/>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">End Date</label>
+              <input type="date" name="end_date" id="endDateInput" class="form-control" value="" placeholder=""/>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Skills <small class="text-muted fw-normal">(comma separated)</small></label>
+              <input type="text" name="skills" class="form-control" value="{{ intern.skills or '' }}" placeholder="React, Python, SQL..."/>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Bio</label>
+              <textarea name="bio" class="form-control" rows="3" placeholder="Tell us about yourself...">{{ intern.bio or '' }}</textarea>
+            </div>
+          </div>
+          <div class="mt-4">
+            <button type="submit" class="btn-update"><i class="bi bi-check2 me-1"></i>Save Changes</button>
+          </div>
+        </form>
+      </div>
+  </div>
+</div>
+
+<script>
+// ── Date helpers ─────────────────────────────────────────────────────────
+const MONTHS = {
+  January:'01',February:'02',March:'03',April:'04',May:'05',June:'06',
+  July:'07',August:'08',September:'09',October:'10',November:'11',December:'12'
+};
+function textToDateVal(text) {
+  if (!text) return '';
+  // Already YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  // Already YYYY-MM (month picker legacy)
+  if (/^\d{4}-\d{2}$/.test(text)) return text + '-01';
+  // "May 2024" or "May, 2024"
+  const m = text.match(/([A-Za-z]+)[,\s]+(\d{4})/);
+  if (m) {
+    const key = Object.keys(MONTHS).find(k => k.toLowerCase().startsWith(m[1].toLowerCase()));
+    if (key) return `${m[2]}-${MONTHS[key]}-01`;
+  }
+  return '';
+}
+// Pre-fill inputs from stored values
+(function(){
+  const sd = {{ (intern.start_date or '') | tojson }};
+  const ed = {{ (intern.end_date or '') | tojson }};
+  const si = document.getElementById('startDateInput');
+  const ei = document.getElementById('endDateInput');
+  if (si) si.value = textToDateVal(sd);
+  if (ei) ei.value = textToDateVal(ed);
+})();
+// On submit, value is already YYYY-MM-DD — store as-is
+// ─────────────────────────────────────────────────────────────────────────
+
+function previewPhoto(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const preview = document.getElementById('avatarPreview');
+      const placeholder = document.getElementById('avatarPlaceholder');
+      preview.src = e.target.result;
+      preview.classList.remove('d-none');
+      if (placeholder) placeholder.style.display = 'none';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function toggleField(inputId, iconId) {
+  const inp = document.getElementById(inputId);
+  const ico = document.getElementById(iconId);
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    ico.className = 'bi bi-eye-slash';
+  } else {
+    inp.type = 'password';
+    ico.className = 'bi bi-eye';
+  }
+}
+
+function togglePw() {
+  const f = document.getElementById('newPw');
+  const btn = f.nextElementSibling;
+  const show = f.type === 'password';
+  f.type = show ? 'text' : 'password';
+  btn.innerHTML = show ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+}
+</script>
+{% endblock %}

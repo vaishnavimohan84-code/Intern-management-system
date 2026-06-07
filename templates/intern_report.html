@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+{% block title %}AI Suggestions & Reports{% endblock %}
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--purple:#7c3aed;}
+body{background:#f0f2f5;font-family:'Inter',sans-serif;}
+.sidebar{width:240px;min-height:100vh;background:linear-gradient(180deg,#1e1b4b,#312e81);position:fixed;top:0;left:0;z-index:100;display:flex;flex-direction:column;}
+.sidebar .brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sidebar .nav-link{color:rgba(255,255,255,.65);padding:10px 18px;border-radius:8px;margin:2px 10px;font-size:.88rem;display:flex;align-items:center;transition:all .18s;}
+.sidebar .nav-link:hover,.sidebar .nav-link.active{background:rgba(124,58,237,.28);color:#c4b5fd;}
+.sidebar .nav-link i{width:22px;margin-right:10px;}
+.sidebar-bottom{padding:14px;margin-top:auto;}
+.main{margin-left:240px;padding:24px;}
+.topbar{background:white;border-radius:12px;padding:14px 22px;margin-bottom:22px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.card{background:white;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.07);border:none;}
+/* AI Suggestions */
+.suggestion-item{display:flex;align-items:center;gap:14px;padding:14px;border-radius:10px;margin-bottom:10px;}
+.sug-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.priority-high{background:#fee2e2;color:#991b1b;border-radius:20px;padding:2px 10px;font-size:.72rem;font-weight:700;}
+.priority-medium{background:#fef3c7;color:#92400e;border-radius:20px;padding:2px 10px;font-size:.72rem;font-weight:700;}
+.priority-low{background:#d1fae5;color:#065f46;border-radius:20px;padding:2px 10px;font-size:.72rem;font-weight:700;}
+.skeleton{background:linear-gradient(90deg,#eee 25%,#f5f5f5 50%,#eee 75%);background-size:200%;animation:shimmer 1.2s infinite;border-radius:6px;height:14px;margin-bottom:10px;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* Reports Stats */
+.stat-mini{background:white;border-radius:12px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+/* Tab Navigation */
+.tab-nav{display:flex;gap:8px;margin-bottom:24px;}
+.tab-btn{padding:9px 22px;border-radius:10px;font-size:.88rem;font-weight:600;border:2px solid #e5e7eb;background:white;color:#6b7280;cursor:pointer;transition:all .18s;}
+.tab-btn.active{background:var(--purple);border-color:var(--purple);color:white;}
+.tab-btn:hover:not(.active){border-color:#c4b5fd;color:var(--purple);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+/* Section divider */
+.section-title{font-size:1.05rem;font-weight:700;color:#1e1b4b;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.section-title i{color:var(--purple);}
+@media print{.sidebar,.topbar,.no-print{display:none!important}.main{margin-left:0!important}}
+</style>
+{% endblock %}
+{% block body %}
+<nav class="sidebar">
+  <div class="brand d-flex align-items-center gap-2">
+    <div style="width:34px;height:34px;border-radius:8px;background:var(--purple);display:flex;align-items:center;justify-content:center;"><i class="bi bi-mortarboard-fill text-white"></i></div>
+    <div class="text-white fw-bold" style="font-size:.95rem">Intern Portal</div>
+  </div>
+  <ul class="nav flex-column mt-2">
+    <li><a class="nav-link" href="/intern_dashboard"><i class="bi bi-house-fill"></i>Dashboard</a></li>
+    <li><a class="nav-link" href="/intern_overview"><i class="bi bi-person-lines-fill"></i>My Performance</a></li>
+    <li><a class="nav-link active" href="/intern_report"><i class="bi bi-lightbulb"></i>AI Suggestions & Reports</a></li>
+    <li><a class="nav-link" href="/intern_profile"><i class="bi bi-person-circle"></i>Profile</a></li>
+    <li><a class="nav-link" href="/change_intern_password"><i class="bi bi-key-fill"></i>Change Password</a></li>
+  </ul>
+  <div class="sidebar-bottom">
+    <a class="nav-link" href="/logout" style="margin:0;color:rgba(255,255,255,.5)"><i class="bi bi-box-arrow-right"></i>Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar d-flex align-items-center justify-content-between">
+    <div>
+      <h5 class="mb-0 fw-bold">AI Suggestions & Reports</h5>
+      <div class="text-muted small">Personalized insights and performance reports</div>
+    </div>
+    <button onclick="window.print()" class="btn btn-sm btn-outline-secondary no-print"><i class="bi bi-printer me-1"></i>Print</button>
+  </div>
+
+  {% set i = current_intern %}
+  {% if i %}
+
+  <!-- Tab Navigation -->
+  <div class="tab-nav no-print">
+    <button class="tab-btn active" onclick="switchTab('ai')"><i class="bi bi-lightbulb me-1"></i>AI Suggestions</button>
+    <button class="tab-btn" onclick="switchTab('reports')"><i class="bi bi-bar-chart me-1"></i>Reports</button>
+  </div>
+
+  <!-- ===== AI SUGGESTIONS TAB ===== -->
+  <div class="tab-pane active" id="tab-ai">
+    <div class="row g-4">
+      <div class="col-md-8">
+        <!-- AI Suggestions Card -->
+        <div class="card p-4 mb-4">
+          <div class="section-title"><i class="bi bi-stars"></i>Personalized Suggestions</div>
+          <div id="aiSuggestions">
+            <div class="skeleton" style="width:80%"></div>
+            <div class="skeleton" style="width:65%"></div>
+            <div class="skeleton" style="width:75%"></div>
+          </div>
+        </div>
+
+        <!-- Overall Recommendation -->
+        <div class="card p-4" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);border:1px solid #c4b5fd">
+          <h6 class="fw-bold mb-2">Overall Recommendation</h6>
+          <p class="text-muted mb-2" id="aiRec" style="font-size:.9rem">Loading personalized recommendation...</p>
+          <div style="width:60px;height:60px;border-radius:50%;background:rgba(124,58,237,.15);display:flex;align-items:center;justify-content:center;margin-top:8px;float:right">
+            <i class="bi bi-robot" style="font-size:1.5rem;color:#7c3aed"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <!-- Performance Summary -->
+        <div class="card p-4 mb-4">
+          <div class="section-title"><i class="bi bi-graph-up"></i>Performance Summary</div>
+          <div class="d-flex justify-content-between py-2 border-bottom"><span class="text-muted small">Overall Score</span><strong>{{ ((i.attendance + i.project + i.communication*10)/3)|round|int }}%</strong></div>
+          <div class="d-flex justify-content-between py-2 border-bottom"><span class="text-muted small">Performance Level</span><span class="badge" style="background:#d1fae5;color:#065f46">{{ i.performance }}</span></div>
+          <div class="d-flex justify-content-between py-2 border-bottom"><span class="text-muted small">Domain</span><span class="fw-semibold small" style="color:#7c3aed">{{ i.domain if i.domain else (i.department.split('(')[1].replace(')','') if '(' in i.department else i.department.split()[0]) }}</span></div>
+          <div class="d-flex justify-content-between py-2"><span class="text-muted small">Improvement</span><span class="text-success small fw-bold">↑ 12%</span></div>
+          <hr/>
+          <div class="mt-2">
+            <div class="text-muted small fw-semibold mb-2">Download Reports</div>
+            <button onclick="window.print()" class="btn btn-sm btn-outline-danger w-100">📄 Monthly Report</button>
+          </div>
+        </div>
+
+        <!-- Score Breakdown -->
+        <div class="card p-4">
+          <div class="section-title"><i class="bi bi-bar-chart-fill"></i>Score Breakdown</div>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1"><span class="small">Attendance</span><span class="small fw-bold">{{ i.attendance }}%</span></div>
+            <div class="progress" style="height:6px;border-radius:4px;"><div class="progress-bar" style="width:{{ i.attendance }}%;background:#2563eb;border-radius:4px;"></div></div>
+          </div>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1"><span class="small">Communication</span><span class="small fw-bold">{{ i.communication }}/10</span></div>
+            <div class="progress" style="height:6px;border-radius:4px;"><div class="progress-bar" style="width:{{ i.communication * 10 }}%;background:#d97706;border-radius:4px;"></div></div>
+          </div>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1"><span class="small">Task Completion</span><span class="small fw-bold">{{ i.tasks }}/20</span></div>
+            <div class="progress" style="height:6px;border-radius:4px;"><div class="progress-bar" style="width:{{ (i.tasks/20*100)|int }}%;background:#16a34a;border-radius:4px;"></div></div>
+          </div>
+          <div class="mb-1">
+            <div class="d-flex justify-content-between mb-1"><span class="small">Project Score</span><span class="small fw-bold">{{ i.project }}%</span></div>
+            <div class="progress" style="height:6px;border-radius:4px;"><div class="progress-bar" style="width:{{ i.project }}%;background:#7c3aed;border-radius:4px;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REPORTS TAB ===== -->
+  <div class="tab-pane" id="tab-reports">
+    <!-- Filters -->
+    <div class="card p-4 mb-4 no-print">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label fw-semibold small">Select Department</label>
+          <select class="form-select form-select-sm"><option>All Department</option>{% set depts = interns|map(attribute='department')|unique|list %}{% for d in depts %}<option>{{ d }}</option>{% endfor %}</select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold small">Date From</label>
+          <input type="date" class="form-control form-control-sm" value="2024-01-05"/>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold small">Date To</label>
+          <input type="date" class="form-control form-control-sm" value="2024-05-31"/>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-danger btn-sm w-100">Generate</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    {% set total = interns|length %}
+    {% set high = interns|selectattr('performance','equalto','High')|list|length %}
+    {% set medium = interns|selectattr('performance','equalto','Medium')|list|length %}
+    {% set low = interns|selectattr('performance','equalto','Low')|list|length %}
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3"><div class="stat-mini"><div class="text-muted small">Average Performance</div><div class="fw-bold fs-4">{% if total %}{{ ((high*100 + medium*60 + low*30)//total) }}%{% else %}0%{% endif %}</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-mini"><div class="text-muted small">Total Interns</div><div class="fw-bold fs-4 text-primary">{{ total }}</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-mini"><div class="text-muted small">Excellent</div><div class="fw-bold fs-4 text-success">{{ high }}</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-mini"><div class="text-muted small">Needs Improvement</div><div class="fw-bold fs-4 text-danger">{{ low }}</div></div></div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-7">
+        <div class="card p-4">
+          <div class="section-title"><i class="bi bi-bar-chart-line"></i>Performance by Department</div>
+          <canvas id="deptChart" height="140"></canvas>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div class="card p-4">
+          <div class="section-title"><i class="bi bi-pie-chart"></i>Performance Distribution</div>
+          <div class="d-flex align-items-center gap-4">
+            <canvas id="distChart" width="140" height="140"></canvas>
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-2"><div style="width:12px;height:12px;border-radius:3px;background:#2563eb"></div><small>High &nbsp;<strong>{{ high }}</strong></small></div>
+              <div class="d-flex align-items-center gap-2 mb-2"><div style="width:12px;height:12px;border-radius:3px;background:#16a34a"></div><small>Medium &nbsp;<strong>{{ medium }}</strong></small></div>
+              <div class="d-flex align-items-center gap-2 mb-2"><div style="width:12px;height:12px;border-radius:3px;background:#f59e0b"></div><small>Low &nbsp;<strong>{{ low }}</strong></small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Reports Table -->
+    <div class="card">
+      <div class="d-flex align-items-center justify-content-between px-4 pt-4 pb-3">
+        <div class="section-title mb-0"><i class="bi bi-file-earmark-text"></i>Recent Reports</div>
+      </div>
+      <div class="table-responsive px-3 pb-4">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light"><tr><th>Report Name</th><th>Generated On</th><th>Generated By</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Monthly Performance Report</td><td class="text-muted">20 May 2024</td><td class="text-muted">HR Admin</td><td><button class="btn btn-sm btn-primary px-3" onclick="window.print()">Download</button></td></tr>
+            <tr><td>All Interns Report</td><td class="text-muted">19 May 2024</td><td class="text-muted">HR Admin</td><td><button class="btn btn-sm btn-primary px-3" onclick="window.print()">Download</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.__INTERN__ = {
+      name: {{ i.name | tojson }},
+      department: {{ i.department | tojson }},
+      domain: {{ (i.domain if i.domain else '') | tojson }},
+      attendance: {{ i.attendance }},
+      tasks: {{ i.tasks }},
+      communication: {{ i.communication }},
+      project: {{ i.project }},
+      performance: {{ i.performance | tojson }}
+    };
+  </script>
+  {% else %}
+  <div class="text-center py-5 text-muted">No data available.</div>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Tab switching
+function switchTab(name) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  if (name === 'reports') initCharts();
+}
+
+// Charts (lazy init to avoid rendering on hidden canvas)
+let chartsInited = false;
+function initCharts() {
+  if (chartsInited) return;
+  chartsInited = true;
+  const depts = {{ interns|map(attribute='department')|list|tojson }};
+  const perfs = {{ interns|map(attribute='performance')|list|tojson }};
+  const deptMap = {};
+  depts.forEach((d,i)=>{if(!deptMap[d])deptMap[d]={h:0,m:0,l:0};deptMap[d][perfs[i][0].toLowerCase()]++;});
+  const labels = Object.keys(deptMap);
+  new Chart(document.getElementById('deptChart'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'High',data:labels.map(d=>deptMap[d].h),backgroundColor:'#2563eb',borderRadius:4},
+      {label:'Medium',data:labels.map(d=>deptMap[d].m),backgroundColor:'#f59e0b',borderRadius:4},
+      {label:'Low',data:labels.map(d=>deptMap[d].l),backgroundColor:'#ef4444',borderRadius:4}
+    ]},
+    options:{plugins:{legend:{position:'bottom'}},scales:{x:{stacked:false,grid:{display:false}},y:{grid:{color:'#f3f4f6'},beginAtZero:true}}}
+  });
+  new Chart(document.getElementById('distChart'),{
+    type:'doughnut',
+    data:{datasets:[{data:[{{ high }}||1,{{ medium }}||1,{{ low }}||1],backgroundColor:['#2563eb','#16a34a','#f59e0b'],borderWidth:2,borderColor:'#fff'}]},
+    options:{cutout:'60%',plugins:{legend:{display:false}}}
+  });
+}
+
+// AI Suggestions
+(async () => {
+  const d = window.__INTERN__;
+  if (!d) return;
+  const scores = [
+    { label:'Attendance', pct: d.attendance, icon:'bi-calendar-check', bg:'#eff6ff', color:'#2563eb' },
+    { label:'Communication Score', pct: d.communication/10*100, icon:'bi-chat-dots', bg:'#fef3c7', color:'#d97706' },
+    { label:'Task Completion', pct: d.tasks/20*100, icon:'bi-check2-square', bg:'#eff6ff', color:'#2563eb' },
+    { label:'Project Score', pct: d.project, icon:'bi-kanban', bg:'#d1fae5', color:'#16a34a' }
+  ];
+  scores.sort((a,b)=>a.pct-b.pct);
+
+  const prompt = `You are a helpful internship coach. Intern ${d.name} from ${d.department} has these scores:\nAttendance ${d.attendance}%, Tasks ${d.tasks}/20, Communication Score ${d.communication}/10, Project ${d.project}/100. Performance: ${d.performance}.\n\nList exactly 4 actionable improvement suggestions in JSON format:\n[{"title":"suggestion title","description":"1 sentence action to take","area":"area name"}]\nReturn only the JSON array, no other text.`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 500,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.find(b => b.type === "text")?.text?.trim() || "[]";
+    let tips = [];
+    try { tips = JSON.parse(text); } catch(e) { tips = []; }
+    if (!tips.length) throw new Error("no tips");
+
+    const icons = ['bi-chat-bubble','bi-code-slash','bi-clock','bi-people'];
+    const bgs = ['#fff0f0','#fff7e6','#f0fdf4','#eff6ff'];
+    const prios = ['High Priority','Medium Priority','Medium Priority','Low Priority'];
+    const prioCls = ['priority-high','priority-medium','priority-medium','priority-low'];
+    const prioColors = ['#fee2e2','#fef3c7','#fef3c7','#d1fae5'];
+
+    let html = '';
+    tips.slice(0,4).forEach((t,i)=>{
+      html += `<div class="suggestion-item" style="background:${bgs[i]}">
+        <div class="sug-icon" style="background:${prioColors[i]}"><i class="bi ${icons[i]}" style="color:${scores[i]?.color||'#7c3aed'}"></i></div>
+        <div class="flex-1">
+          <div class="fw-semibold small">${t.title}</div>
+          <div class="text-muted" style="font-size:.82rem">${t.description}</div>
+        </div>
+        <span class="${prioCls[i]}">${prios[i]}</span>
+      </div>`;
+    });
+    document.getElementById('aiSuggestions').innerHTML = html;
+    const rec = `You have great potential. Focus on improving ${scores[0].label.toLowerCase()} and consistency to reach the next level.`;
+    document.getElementById('aiRec').textContent = rec;
+  } catch(e) {
+    document.getElementById('aiSuggestions').innerHTML = `
+      <div class="suggestion-item" style="background:#fff0f0"><div class="sug-icon" style="background:#fee2e2"><i class="bi bi-chat-bubble" style="color:#dc2626"></i></div><div><div class="fw-semibold small">Improve Communication Score</div><div class="text-muted" style="font-size:.82rem">Focus on improving your project deliverables and meeting quality benchmarks.</div></div><span class="priority-high">High Priority</span></div>
+      <div class="suggestion-item" style="background:#fff7e6"><div class="sug-icon" style="background:#fef3c7"><i class="bi bi-code-slash" style="color:#d97706"></i></div><div><div class="fw-semibold small">Enhance Coding Practice</div><div class="text-muted" style="font-size:.82rem">Solve more coding problems and try advanced challenges.</div></div><span class="priority-medium">Medium Priority</span></div>
+      <div class="suggestion-item" style="background:#f0fdf4"><div class="sug-icon" style="background:#d1fae5"><i class="bi bi-clock" style="color:#16a34a"></i></div><div><div class="fw-semibold small">Submit Tasks on Time</div><div class="text-muted" style="font-size:.82rem">Try to submit tasks before the deadline to improve your score.</div></div><span class="priority-medium">Medium Priority</span></div>
+      <div class="suggestion-item" style="background:#eff6ff"><div class="sug-icon" style="background:#dbeafe"><i class="bi bi-people" style="color:#2563eb"></i></div><div><div class="fw-semibold small">Participate in Team Activities</div><div class="text-muted" style="font-size:.82rem">Be more active in team discussions and help your peers.</div></div><span class="priority-low">Low Priority</span></div>`;
+    document.getElementById('aiRec').textContent = 'You have great potential. Focus on improving project scores and consistency to reach the next level.';
+  }
+})();
+</script>
+{% endblock %}
